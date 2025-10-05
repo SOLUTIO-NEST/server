@@ -1,15 +1,15 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: api
   main:
     web-application-type: servlet
 
-
-
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:aics}
-    username: ${POSTGRES_USERNAME:root}
-    password: ${POSTGRES_PASSWORD:root}
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_NAME}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -25,14 +25,14 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: ${MAX_FILE_SIZE:10MB}
-      max-request-size: ${MAX_REQUEST_SIZE:10MB}
+      max-file-size: ${MAX_FILE_SIZE}
+      max-request-size: ${MAX_REQUEST_SIZE}
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
 
 server:
-  port: 8080
+  port: ${SERVER_PORT}
