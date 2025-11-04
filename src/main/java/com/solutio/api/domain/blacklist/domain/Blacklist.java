@@ -1,18 +1,14 @@
-package com.solutio.api.domain.member.domain;
+package com.solutio.api.domain.blacklist.domain;
 
 import com.solutio.api.global.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,25 +19,19 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Member extends BaseEntity {
+public class Blacklist extends BaseEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", updatable = false)
+    private Long id;
+
     @Email(message = "올바른 이메일 형식이 아닙니다.")
     @Pattern(
         regexp = "^[A-Za-z0-9._%+-]+@(kgu\\.ac\\.kr|kyonggi\\.ac\\.kr)$",
         message = "경기대학교 이메일(@kgu.ac.kr 또는 @kyonggi.ac.kr)만 사용할 수 있습니다."
     )
-    @Column(name = "email", nullable = false, unique = true, updatable = false)
     private String email;
-
-    @NotBlank(message = "비밀번호를 입력해야 합니다.")
-    @Size(min = 8, max = 12, message = "비밀번호는 8~12자여야 합니다.")
-    @Pattern(
-        regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,12}$",
-        message = "비밀번호는 영문, 숫자, 특수문자를 모두 포함해야 합니다."
-    )
-    @Column(nullable = false)
-    private String password;
 
     @NotBlank(message = "소속 학과를 입력해야 합니다.")
     @Column(nullable = false)
@@ -64,17 +54,6 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 13)
     private String phoneNumber;
 
-    @NotBlank(message = "백준 아이디를 입력해야 합니다.")
-    @Column(nullable = false, unique = true)
-    private String bojId;
-
-    @NotNull(message = "메인 언어를 선택해야 합니다.")
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private MainLanguage mainLanguage;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private Role role;
+    private String reason;
 
 }
