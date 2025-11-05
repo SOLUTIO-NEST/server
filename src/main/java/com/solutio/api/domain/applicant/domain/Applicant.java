@@ -26,6 +26,11 @@ import lombok.NoArgsConstructor;
 public class Applicant extends BaseEntity {
 
     @Id
+    @NotBlank(message = "학번을 입력해야 합니다.")
+    @Pattern(regexp = "^\\d{9}$", message = "학번은 숫자 9자리여야 합니다.")
+    @Column(nullable = false, length = 9, unique = true, updatable = false)
+    private String studentId;
+
     @Email(message = "올바른 이메일 형식이 아닙니다.")
     @Pattern(
         regexp = "^[A-Za-z0-9._%+-]+@(kgu\\.ac\\.kr|kyonggi\\.ac\\.kr)$",
@@ -46,11 +51,6 @@ public class Applicant extends BaseEntity {
     @NotBlank(message = "소속 학과를 입력해야 합니다.")
     @Column(nullable = false)
     private String department;
-
-    @NotBlank(message = "학번을 입력해야 합니다.")
-    @Pattern(regexp = "^\\d{9}$", message = "학번은 숫자 9자리여야 합니다.")
-    @Column(nullable = false, length = 9)
-    private String studentId;
 
     @NotBlank(message = "이름을 입력해야 합니다.")
     @Column(nullable = false)
