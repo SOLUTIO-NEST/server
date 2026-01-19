@@ -23,7 +23,7 @@ public class ApplicantService {
 
     @Transactional
     public List<String> createMembersByRecruitment(Long recruitmentId) {
-        List<Applicant> applicants = applicantRepository.findByIdRecruitmentIdAndIsApprove(recruitmentId, true);
+        List<Applicant> applicants = applicantRepository.findByRecruitmentIdAndIsApprove(recruitmentId, true);
 
         return applicants.stream()
             .map(this::createMemberFromApplication)
@@ -32,7 +32,7 @@ public class ApplicantService {
 
     @Transactional
     public String createMemberByRecruitment(Long recruitmentId, String studentId) {
-        Applicant applicant = applicantRepository.findByIdRecruitmentIdAndIdStudentId(recruitmentId,studentId);
+        Applicant applicant = applicantRepository.findByRecruitmentIdAndStudentId(recruitmentId,studentId);
 
         if(!applicant.getIsApprove()) {
             throw new GeneralException(Status.NOT_APPROVED_APPLICATION);

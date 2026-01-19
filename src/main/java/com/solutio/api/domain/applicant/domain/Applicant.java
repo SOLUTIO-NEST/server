@@ -3,10 +3,10 @@ package com.solutio.api.domain.applicant.domain;
 import com.solutio.api.domain.member.domain.MainLanguage;
 import com.solutio.api.global.domain.BaseEntity;
 import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
 import jakarta.validation.constraints.Email;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,8 +21,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Applicant extends BaseEntity {
 
-    @EmbeddedId
-    private ApplicantId id;
+    @Id
+    @Column(nullable = false, length = 9, unique = true, updatable = false)
+    private String studentId;
+
+    @Id
+    private Long recruitmentId;
 
     @Email
     @Column(name = "email", nullable = false, unique = true, updatable = false)
