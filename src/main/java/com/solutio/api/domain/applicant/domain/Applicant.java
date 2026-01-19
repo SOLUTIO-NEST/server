@@ -1,12 +1,16 @@
 package com.solutio.api.domain.applicant.domain;
 
 import com.solutio.api.domain.member.domain.MainLanguage;
+import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.global.domain.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.Email;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,8 +29,9 @@ public class Applicant extends BaseEntity {
     @Column(nullable = false, length = 9, unique = true, updatable = false)
     private String studentId;
 
-    @Id
-    private Long recruitmentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recruitment_id")
+    private Recruitment recruitment;
 
     @Email
     @Column(name = "email", nullable = false, unique = true, updatable = false)
