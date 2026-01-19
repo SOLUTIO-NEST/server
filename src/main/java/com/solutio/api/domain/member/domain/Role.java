@@ -11,8 +11,7 @@ public enum Role {
     USER("ROLE_USER", "동아리원"),
     STAFF("ROLE_STAFF", "운영진"),
     NEST("ROLE_NEST", "개발자"),
-    SUPER("ROLE_SUPER", "관리자")
-
+    SUPER("ROLE_SUPER", "관리자"),
     ;
 
     private String key;
