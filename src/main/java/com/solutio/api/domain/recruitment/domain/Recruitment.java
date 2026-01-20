@@ -1,24 +1,28 @@
 package com.solutio.api.domain.recruitment.domain;
 
 import com.solutio.api.global.domain.BaseEntity;
+import com.solutio.api.global.response.GeneralException;
+import com.solutio.api.global.response.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLDelete(sql = "UPDATE recruitment SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class Recruitment extends BaseEntity {
 
     @Id
@@ -26,13 +30,54 @@ public class Recruitment extends BaseEntity {
     @Column(name = "id", updatable = false)
     private Long id;
 
-    @NotBlank(message = "제목은 비어 있을 수 없습니다.")
+    @Column(nullable = false)
     private String title;
 
-    @NotNull(message = "시작 일시는 필수 값입니다.")
+    @Column(nullable = false)
     private LocalDateTime startDateTime;
 
-    @NotNull(message = "종료 일시는 필수 값입니다.")
+    @Column(nullable = false)
     private LocalDateTime endDateTime;
 
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted;
+
+    private Recruitment(
+        String title,
+        LocalDateTime startDateTime,
+        LocalDateTime endDateTime
+    ) {
+        this.title = title;
+        this.startDateTime = startDateTime;
+        this.endDateTime = endDateTime;
+    }
+
+    public static Recruitment create(
+        String title,
+        LocalDateTime startDateTime,
+        LocalDateTime endDateTime
+    ) {
+        Recruitment recruitment = new Recruitment(title, startDateTime, endDateTime);
+
+        recruitment.validateDateRange();
+
+        return recruitment;
+    }
+
+    public void update(String title, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        this.title = title;
+        this.startDateTime = startDateTime;
+        this.endDateTime = endDateTime;
+        validateDateRange();
+    }
+
+    private void validateDateRange() {
+        if (startDateTime.isAfter(endDateTime)) {
+            throw new GeneralException(Status.INVALID_DATE_RANGE);
+        }
+    }
+
+    public void delete() {
+        this.isDeleted=true;
+    }
 }

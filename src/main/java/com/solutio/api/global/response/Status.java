@@ -26,6 +26,8 @@ public enum Status {
     //
     RECRUITMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "RECRUITMENT404", "모집이 존재하지 않습니다."),
 
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "DATE400", "시작 날짜는 종료 날짜보다 앞설 수 없습니다.")
+
     ;
     private final HttpStatus httpStatus;
 

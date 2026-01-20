@@ -5,7 +5,7 @@ import com.solutio.api.domain.applicant.dto.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.repository.ApplicantRepository;
 import com.solutio.api.domain.member.domain.Member;
 import com.solutio.api.domain.member.service.MemberService;
-import com.solutio.api.domain.recruitment.RecruitmentService;
+import com.solutio.api.domain.recruitment.service.RecruitmentService;
 import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;

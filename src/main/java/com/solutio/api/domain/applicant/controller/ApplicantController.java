@@ -33,7 +33,7 @@ public class ApplicantController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
     }
 
-    @Operation(summary = "[N] 합격자 계정 통합 생성", description = "ROLE_NEST 이상의 권한이 필요함")
+    @Operation(summary = "[Nest] 합격자 계정 통합 생성", description = "ROLE_NEST 이상의 권한이 필요함")
     @PreAuthorize("hasRole('NEST')")
     @PostMapping("/{recruitmentId}")
     public ApiResponse<?> registerMembersByRecruitment(
@@ -43,7 +43,7 @@ public class ApplicantController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), ids);
     }
 
-    @Operation(summary = "[N] 합격자 계정 개별 생성", description = "ROLE_NEST 이상의 권한이 필요함")
+    @Operation(summary = "[Nest] 합격자 계정 개별 생성", description = "ROLE_NEST 이상의 권한이 필요함")
     @PreAuthorize("hasRole('NEST')")
     @PostMapping("/{recruitmentId}/{studentId}")
     public ApiResponse<?> registerMembersByRecruitment(
