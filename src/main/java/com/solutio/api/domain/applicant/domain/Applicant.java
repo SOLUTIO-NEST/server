@@ -17,6 +17,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
@@ -61,4 +62,31 @@ public class Applicant extends BaseEntity {
     @Column(nullable = false)
     private Boolean isApprove;
 
+    public static Applicant create(
+        String studentId,
+        Recruitment recruitment,
+        String email,
+        String password,
+        String department,
+        String name,
+        String phoneNumber,
+        String bojId,
+        MainLanguage mainLanguage,
+        String applyReason,
+        PasswordEncoder passwordEncoder
+    ) {
+        return new Applicant(
+            studentId,
+            recruitment,
+            email,
+            passwordEncoder.encode(password),
+            department,
+            name,
+            phoneNumber,
+            bojId,
+            mainLanguage,
+            applyReason,
+            false
+        );
+    }
 }

@@ -1,9 +1,12 @@
 package com.solutio.api.domain.applicant.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
+import com.solutio.api.domain.applicant.dto.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.repository.ApplicantRepository;
 import com.solutio.api.domain.member.domain.Member;
 import com.solutio.api.domain.member.service.MemberService;
+import com.solutio.api.domain.recruitment.RecruitmentService;
+import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +21,31 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ApplicantService {
     private final MemberService memberService;
+    private final RecruitmentService recruitmentService;
     private final ApplicantRepository applicantRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Transactional
+    public String applyMember(ApplicantCreateRequestDto requestDto) {
+
+        Recruitment recruitment = recruitmentService.getRecruitment(requestDto.getRecruitmentId());
+
+        Applicant applicant = Applicant.create(
+            requestDto.getStudentId(),
+            recruitment,
+            requestDto.getEmail(),
+            requestDto.getPassword(),
+            requestDto.getDepartment(),
+            requestDto.getName(),
+            requestDto.getPhoneNumber(),
+            requestDto.getBojId(),
+            requestDto.getMainLanguage(),
+            requestDto.getApplyReason(),
+            passwordEncoder
+        );
+
+        return applicantRepository.save(applicant).getStudentId();
+    }
 
     @Transactional
     public List<String> createMembersByRecruitment(Long recruitmentId) {

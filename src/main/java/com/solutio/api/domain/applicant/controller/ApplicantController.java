@@ -1,14 +1,17 @@
 package com.solutio.api.domain.applicant.controller;
 
+import com.solutio.api.domain.applicant.dto.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.service.ApplicantService;
 import com.solutio.api.global.response.ApiResponse;
 import com.solutio.api.global.response.Status;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,6 +23,15 @@ import java.util.List;
 @Tag(name = "Applicant", description = "지원자")
 public class ApplicantController {
     private final ApplicantService applicantService;
+
+    @Operation(summary = "동아리 지원", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @PostMapping("")
+    public ApiResponse<String> applyForClub(
+        @Valid @RequestBody ApplicantCreateRequestDto requestDto
+    ) {
+        String id = applicantService.applyMember(requestDto);
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
+    }
 
     @Operation(summary = "[N] 합격자 계정 통합 생성", description = "ROLE_NEST 이상의 권한이 필요함")
     @PreAuthorize("hasRole('NEST')")
