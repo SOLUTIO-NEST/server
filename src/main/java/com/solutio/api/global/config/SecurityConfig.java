@@ -27,6 +27,7 @@ public class SecurityConfig {
         "/webjars/**",
         "/v3/api-docs/**",
         "/swagger-ui/**",
+        "/api/v1/login/**",
         "/test/**"
     };
 
@@ -50,13 +51,11 @@ public class SecurityConfig {
 
     @Bean
     public RoleHierarchy roleHierarchy() {
-        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
-        hierarchy.setHierarchy("""
+        return RoleHierarchyImpl.fromHierarchy("""
         ROLE_SUPER > ROLE_NEST
         ROLE_NEST > ROLE_STAFF
         ROLE_STAFF > ROLE_USER
         ROLE_USER > ROLE_GUEST
     """);
-        return hierarchy;
     }
 }
