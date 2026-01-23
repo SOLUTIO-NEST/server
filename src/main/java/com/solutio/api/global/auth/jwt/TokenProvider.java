@@ -6,12 +6,17 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -39,6 +44,36 @@ public class TokenProvider {
             .claim("role", role)
             .signWith(key)
             .compact();
+    }
+
+    public Authentication getAuthentication(String token) {
+        Claims claims = getClaims(token);
+        String role = claims.get("role", String.class);
+        Set<SimpleGrantedAuthority> authorities = getRoles(role);
+
+        return new UsernamePasswordAuthenticationToken(
+            new org.springframework.security.core.userdetails.User(
+                claims.getSubject(),
+                "",
+                authorities
+            ), token, authorities
+        );
+    }
+
+    public Set<SimpleGrantedAuthority> getRoles(String role) {
+        if (role.equals("MEMBER")) {
+            return Collections.singleton(new SimpleGrantedAuthority("ROLE_MEMBER"));
+        }
+        if (role.equals("NEST")) {
+            return Collections.singleton(new SimpleGrantedAuthority("ROLE_NEST"));
+        }
+        if (role.equals("STAFF")) {
+            return Collections.singleton(new SimpleGrantedAuthority("ROLE_STAFF"));
+        }
+        if (role.equals("SUPER")) {
+            return Collections.singleton(new SimpleGrantedAuthority("ROLE_SUPER"));
+        }
+        return Collections.singleton(new SimpleGrantedAuthority("ROLE_GUEST"));
     }
 
     public boolean validateToken(String token) {
