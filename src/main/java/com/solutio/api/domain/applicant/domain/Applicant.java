@@ -3,6 +3,8 @@ package com.solutio.api.domain.applicant.domain;
 import com.solutio.api.domain.member.domain.MainLanguage;
 import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.global.domain.BaseEntity;
+import com.solutio.api.global.response.GeneralException;
+import com.solutio.api.global.response.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,7 +23,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,7 +32,7 @@ import java.util.Collections;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Applicant extends BaseEntity {
+public class Applicant extends BaseEntity implements UserDetails {
 
     @Id
     @Column(nullable = false, length = 9, unique = true, updatable = false)
@@ -110,5 +111,13 @@ public class Applicant extends BaseEntity {
             applyReason,
             false
         );
+    }
+
+    public void approve() {
+        this.isApprove = true;
+    }
+
+    public void reject() {
+        this.isApprove = false;
     }
 }

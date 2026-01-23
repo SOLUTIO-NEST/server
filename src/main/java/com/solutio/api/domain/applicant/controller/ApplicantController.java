@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,7 +37,7 @@ public class ApplicantController {
 
     @Operation(summary = "[Nest] 합격자 계정 통합 생성", description = "ROLE_NEST 이상의 권한이 필요함")
     @PreAuthorize("hasRole('NEST')")
-    @PostMapping("/{recruitmentId}")
+    @PostMapping("/batch/{recruitmentId}")
     public ApiResponse<?> registerMembersByRecruitment(
         @PathVariable(name = "recruitmentId") Long recruitmentId
     ) {
@@ -45,12 +47,31 @@ public class ApplicantController {
 
     @Operation(summary = "[Nest] 합격자 계정 개별 생성", description = "ROLE_NEST 이상의 권한이 필요함")
     @PreAuthorize("hasRole('NEST')")
-    @PostMapping("/{recruitmentId}/{studentId}")
+    @PostMapping("/{studentId}")
     public ApiResponse<?> registerMembersByRecruitment(
-        @PathVariable(name = "recruitmentId") Long recruitmentId,
         @PathVariable(name = "studentId") String studentId
     ) {
-        String id = applicantService.createMemberByRecruitment(recruitmentId, studentId);
+        String id = applicantService.createMemberByRecruitment(studentId);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
+    }
+
+    @Operation(summary = "[Staff] 지원자 합격 처리", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @PreAuthorize("hasRole('STAFF')")
+    @PatchMapping("/approve/{studentId}")
+    public ApiResponse<?> approveApplicant(
+        @PathVariable(name = "studentId") String studentId
+    ) {
+        String resultStudentId = applicantService.approveApplicant(studentId);
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), resultStudentId);
+    }
+
+    @Operation(summary = "[Staff] 지원자 불합격 처리", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @PreAuthorize("hasRole('STAFF')")
+    @PatchMapping("/reject/{studentId}")
+    public ApiResponse<?> rejectApplicant(
+        @PathVariable(name = "studentId") String studentId
+    ) {
+        String resultStudentId = applicantService.rejectApplicant(studentId);
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), resultStudentId);
     }
 }

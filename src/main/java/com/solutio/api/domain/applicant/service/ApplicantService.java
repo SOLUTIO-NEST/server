@@ -52,27 +52,48 @@ public class ApplicantService {
         List<Applicant> applicants = applicantRepository.findByRecruitmentIdAndIsApprove(recruitmentId, true);
 
         return applicants.stream()
-            .map(this::createMemberFromApplication)
+            .map(this::createMemberFromApplicant)
             .toList();
     }
 
     @Transactional
-    public String createMemberByRecruitment(Long recruitmentId, String studentId) {
-        Applicant applicant = applicantRepository.findByRecruitmentIdAndStudentId(recruitmentId,studentId);
+    public String createMemberByRecruitment(String studentId) {
+        Applicant applicant = applicantRepository.findById(studentId)
+            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
 
         if(!applicant.getIsApprove()) {
-            throw new GeneralException(Status.NOT_APPROVED_APPLICATION);
+            throw new GeneralException(Status.NOT_APPROVED_APPLICANT);
         }
 
-        return createMemberFromApplication(applicant);
+        return createMemberFromApplicant(applicant);
     }
 
-    private String createMemberFromApplication(Applicant applicant) {
+    private String createMemberFromApplicant(Applicant applicant) {
         Member member = memberService.createMember(applicant);
         return member.getStudentId();
     }
 
     public Applicant getApplicantById(String userId) {
         return applicantRepository.findById(userId).orElse(null);
+    }
+
+    @Transactional
+    public String approveApplicant(String studentId) {
+        Applicant applicant = applicantRepository.findById(studentId)
+            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+
+        applicant.approve();
+
+        return applicant.getStudentId();
+    }
+
+    @Transactional
+    public String rejectApplicant(String studentId) {
+        Applicant applicant = applicantRepository.findById(studentId)
+            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+
+        applicant.reject();
+
+        return applicant.getStudentId();
     }
 }
