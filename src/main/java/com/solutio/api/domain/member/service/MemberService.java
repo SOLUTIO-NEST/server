@@ -35,4 +35,8 @@ public class MemberService {
 
         return memberRepository.save(member);
     }
+
+    public Member getUserById(String userId) {
+        return memberRepository.findById(userId).orElse(null);
+    }
 }

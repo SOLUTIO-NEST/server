@@ -19,10 +19,12 @@ public enum Status {
     CONFLICT(HttpStatus.CONFLICT, "COMMON409", "이미 생성되었습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500", "서버에 오류가 발생했습니다."),
 
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "AUTH400", "비밀번호가 일치하지 않습니다."),
+    ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH404", "계정이 존재하지 않습니다."),
+    TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "TOKEN404", "토큰이 존재하지 않습니다."),
     //
     APPLICANT_NOT_FOUND(HttpStatus.NOT_FOUND, "APPLICANT404", "지원자가 존재하지 않습니다."),
-    NOT_APPROVED_APPLICATION(HttpStatus.CONFLICT, "APPLICANT409", "승인되지 않은 지원자입니다.")
-
+    NOT_APPROVED_APPLICATION(HttpStatus.CONFLICT, "APPLICANT409", "승인되지 않은 지원자입니다."),
     ;
     private final HttpStatus httpStatus;
 

@@ -45,4 +45,8 @@ public class ApplicantService {
         Member member = memberService.createMember(applicant);
         return member.getStudentId();
     }
+
+    public Applicant getApplicantById(String userId) {
+        return applicantRepository.findById(userId).orElse(null);
+    }
 }
