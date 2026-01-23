@@ -18,6 +18,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Entity
 @Getter
@@ -62,6 +69,21 @@ public class Applicant extends BaseEntity {
     @Column(nullable = false)
     private Boolean isApprove;
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_GUEST"));
+    }
+
+    @Override
+    public String getUsername() {
+        return studentId;
+    }
+
+    public void isPasswordMatching(String rawPassword, PasswordEncoder passwordEncoder) {
+        if (!passwordEncoder.matches(rawPassword, this.password)) {
+            throw new GeneralException(Status.INVALID_PASSWORD);
+        }
+    }
     public static Applicant create(
         String studentId,
         Recruitment recruitment,

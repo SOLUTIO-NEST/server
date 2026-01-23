@@ -1,6 +1,8 @@
 package com.solutio.api.domain.member.domain;
 
 import com.solutio.api.global.domain.BaseEntity;
+import com.solutio.api.global.response.GeneralException;
+import com.solutio.api.global.response.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,13 +14,19 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Entity
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member extends BaseEntity {
+public class Member extends BaseEntity implements UserDetails {
 
     @Id
     @Column(nullable = false, length = 9, unique = true, updatable = false)
@@ -50,6 +58,9 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Column(nullable = false)
+    private Boolean isDeleted;
+
     public static Member create(
         String studentId,
         String email,
@@ -70,7 +81,24 @@ public class Member extends BaseEntity {
             phoneNumber,
             bojId,
             mainLanguage,
-            Role.GUEST
+            Role.GUEST,
+            false
         );
+    }
+
+    public void isPasswordMatching(String rawPassword, PasswordEncoder passwordEncoder) {
+        if (!passwordEncoder.matches(rawPassword, this.password)) {
+            throw new GeneralException(Status.INVALID_PASSWORD);
+        }
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority(getRole().name()));
+    }
+
+    @Override
+    public String getUsername() {
+        return studentId;
     }
 }

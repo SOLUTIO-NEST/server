@@ -1,5 +1,7 @@
 package com.solutio.api.global.config;
 
+import com.solutio.api.global.auth.filter.TokenAuthenticationFilter;
+import com.solutio.api.global.auth.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,11 +12,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private final TokenProvider tokenProvider;
 
     private static final String[] ALLOWED = {
         "/",
@@ -27,6 +31,7 @@ public class SecurityConfig {
         "/webjars/**",
         "/v3/api-docs/**",
         "/swagger-ui/**",
+        "/api/v1/login",
         "/test/**"
     };
 
@@ -38,9 +43,14 @@ public class SecurityConfig {
                 .requestMatchers(ALLOWED).permitAll()
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .csrf(AbstractHttpConfigurer::disable)
         ;
         return http.build();
+    }
+
+    public TokenAuthenticationFilter tokenAuthenticationFilter() {
+        return new TokenAuthenticationFilter(tokenProvider);
     }
 
     @Bean
@@ -50,13 +60,11 @@ public class SecurityConfig {
 
     @Bean
     public RoleHierarchy roleHierarchy() {
-        RoleHierarchyImpl hierarchy = new RoleHierarchyImpl();
-        hierarchy.setHierarchy("""
+        return RoleHierarchyImpl.fromHierarchy("""
         ROLE_SUPER > ROLE_NEST
         ROLE_NEST > ROLE_STAFF
         ROLE_STAFF > ROLE_USER
         ROLE_USER > ROLE_GUEST
     """);
-        return hierarchy;
     }
 }
