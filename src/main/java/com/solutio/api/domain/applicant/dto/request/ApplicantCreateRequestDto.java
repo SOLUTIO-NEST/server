@@ -1,4 +1,4 @@
-package com.solutio.api.domain.applicant.dto;
+package com.solutio.api.domain.applicant.dto.request;
 
 import com.solutio.api.domain.member.domain.MainLanguage;
 import jakarta.persistence.Column;

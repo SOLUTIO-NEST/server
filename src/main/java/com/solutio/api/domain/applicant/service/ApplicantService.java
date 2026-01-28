@@ -1,7 +1,8 @@
 package com.solutio.api.domain.applicant.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
-import com.solutio.api.domain.applicant.dto.ApplicantCreateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
+import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
 import com.solutio.api.domain.applicant.repository.ApplicantRepository;
 import com.solutio.api.domain.member.domain.Member;
 import com.solutio.api.domain.member.service.MemberService;
@@ -95,5 +96,13 @@ public class ApplicantService {
         applicant.reject();
 
         return applicant.getStudentId();
+    }
+
+    public ApplicantPassResponseDto checkPassStatus() {
+        String studentId = memberService.getMyUserId();
+        Applicant applicant = applicantRepository.findById(studentId)
+            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+
+        return ApplicantPassResponseDto.from(applicant);
     }
 }

@@ -4,6 +4,8 @@ import com.solutio.api.domain.applicant.domain.Applicant;
 import com.solutio.api.domain.member.domain.Member;
 import com.solutio.api.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,5 +40,10 @@ public class MemberService {
 
     public Member getUserById(String userId) {
         return memberRepository.findById(userId).orElse(null);
+    }
+
+    public String getMyUserId() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ((UserDetails)principal).getUsername();
     }
 }

@@ -1,6 +1,7 @@
 package com.solutio.api.domain.applicant.controller;
 
-import com.solutio.api.domain.applicant.dto.ApplicantCreateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
+import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
 import com.solutio.api.domain.applicant.service.ApplicantService;
 import com.solutio.api.global.response.ApiResponse;
 import com.solutio.api.global.response.Status;
@@ -73,5 +74,13 @@ public class ApplicantController {
     ) {
         String resultStudentId = applicantService.rejectApplicant(studentId);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), resultStudentId);
+    }
+
+    @Operation(summary = "합격 여부 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @GetMapping("/my")
+    public ApiResponse<?> checkApplicantPass(
+    ) {
+        ApplicantPassResponseDto response = applicantService.checkPassStatus();
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }
 }
