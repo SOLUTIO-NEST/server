@@ -11,12 +11,19 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
+import com.solutio.api.global.response.PageResponse;
+import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import java.util.List;
 
@@ -76,10 +83,20 @@ public class ApplicantController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), resultStudentId);
     }
 
+    @Operation(summary = "지원자 목록 조회", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @PreAuthorize("hasRole('STAFF')")
+    @GetMapping("/{recruitmentId}")
+    public ApiResponse<PageResponse<ApplicantResponseDto>> getApplicants(
+            @RequestParam(name = "recruitmentId") Long recruitmentId,
+            @PageableDefault(size = 10) Pageable pageable
+    ) {
+        PageResponse<ApplicantResponseDto> response = applicantService.getApplicants(recruitmentId, pageable);
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
+    }
+
     @Operation(summary = "합격 여부 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @GetMapping("/my")
-    public ApiResponse<?> checkApplicantPass(
-    ) {
+    public ApiResponse<?> checkApplicantPass() {
         ApplicantPassResponseDto response = applicantService.checkPassStatus();
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }

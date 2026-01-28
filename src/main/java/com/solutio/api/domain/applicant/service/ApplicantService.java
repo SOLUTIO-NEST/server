@@ -2,7 +2,9 @@ package com.solutio.api.domain.applicant.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
 import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
+import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
+import com.solutio.api.global.response.PageResponse;
 import com.solutio.api.domain.applicant.repository.ApplicantRepository;
 import com.solutio.api.domain.member.domain.Member;
 import com.solutio.api.domain.member.service.MemberService;
@@ -11,6 +13,8 @@ import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,18 +36,17 @@ public class ApplicantService {
         Recruitment recruitment = recruitmentService.getRecruitment(requestDto.getRecruitmentId());
 
         Applicant applicant = Applicant.create(
-            requestDto.getStudentId(),
-            recruitment,
-            requestDto.getEmail(),
-            requestDto.getPassword(),
-            requestDto.getDepartment(),
-            requestDto.getName(),
-            requestDto.getPhoneNumber(),
-            requestDto.getBojId(),
-            requestDto.getMainLanguage(),
-            requestDto.getApplyReason(),
-            passwordEncoder
-        );
+                requestDto.getStudentId(),
+                recruitment,
+                requestDto.getEmail(),
+                requestDto.getPassword(),
+                requestDto.getDepartment(),
+                requestDto.getName(),
+                requestDto.getPhoneNumber(),
+                requestDto.getBojId(),
+                requestDto.getMainLanguage(),
+                requestDto.getApplyReason(),
+                passwordEncoder);
 
         return applicantRepository.save(applicant).getStudentId();
     }
@@ -53,16 +56,16 @@ public class ApplicantService {
         List<Applicant> applicants = applicantRepository.findByRecruitmentIdAndIsApprove(recruitmentId, true);
 
         return applicants.stream()
-            .map(this::createMemberFromApplicant)
-            .toList();
+                .map(this::createMemberFromApplicant)
+                .toList();
     }
 
     @Transactional
     public String createMemberByRecruitment(String studentId) {
         Applicant applicant = applicantRepository.findById(studentId)
-            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
 
-        if(!applicant.getIsApprove()) {
+        if (!applicant.getIsApprove()) {
             throw new GeneralException(Status.NOT_APPROVED_APPLICANT);
         }
 
@@ -81,7 +84,7 @@ public class ApplicantService {
     @Transactional
     public String approveApplicant(String studentId) {
         Applicant applicant = applicantRepository.findById(studentId)
-            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
 
         applicant.approve();
 
@@ -91,7 +94,7 @@ public class ApplicantService {
     @Transactional
     public String rejectApplicant(String studentId) {
         Applicant applicant = applicantRepository.findById(studentId)
-            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
 
         applicant.reject();
 
@@ -101,8 +104,13 @@ public class ApplicantService {
     public ApplicantPassResponseDto checkPassStatus() {
         String studentId = memberService.getMyUserId();
         Applicant applicant = applicantRepository.findById(studentId)
-            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+                .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
 
         return ApplicantPassResponseDto.from(applicant);
+    }
+
+    public PageResponse<ApplicantResponseDto> getApplicants(Long recruitmentId, Pageable pageable) {
+        Page<Applicant> applicants = applicantRepository.findAllByRecruitmentId(recruitmentId, pageable);
+        return PageResponse.from(applicants.map(ApplicantResponseDto::from));
     }
 }
