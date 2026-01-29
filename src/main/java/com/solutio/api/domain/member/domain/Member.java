@@ -14,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,6 +27,7 @@ import java.util.Collections;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction("is_deleted = false")
 public class Member extends BaseEntity implements UserDetails {
 
     @Id
@@ -61,7 +63,7 @@ public class Member extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private Boolean isDeleted;
 
-    public static Member create(
+    public static Member createFromApplicant(
         String studentId,
         String email,
         String password,
@@ -69,19 +71,18 @@ public class Member extends BaseEntity implements UserDetails {
         String name,
         String phoneNumber,
         String bojId,
-        MainLanguage mainLanguage,
-        PasswordEncoder passwordEncoder
+        MainLanguage mainLanguage
     ) {
         return new Member(
             studentId,
             email,
-            passwordEncoder.encode(password),
+            password,
             department,
             name,
             phoneNumber,
             bojId,
             mainLanguage,
-            Role.GUEST,
+            Role.USER,
             false
         );
     }

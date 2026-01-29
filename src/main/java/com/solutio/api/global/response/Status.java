@@ -24,7 +24,13 @@ public enum Status {
     TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "TOKEN404", "토큰이 존재하지 않습니다."),
     //
     APPLICANT_NOT_FOUND(HttpStatus.NOT_FOUND, "APPLICANT404", "지원자가 존재하지 않습니다."),
-    NOT_APPROVED_APPLICATION(HttpStatus.CONFLICT, "APPLICANT409", "승인되지 않은 지원자입니다."),
+    NOT_APPROVED_APPLICANT(HttpStatus.CONFLICT, "APPLICANT409", "승인되지 않은 지원자입니다."),
+
+    //
+    RECRUITMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "RECRUITMENT404", "모집이 존재하지 않습니다."),
+
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "DATE400", "시작 날짜는 종료 날짜보다 앞설 수 없습니다.")
+
     ;
     private final HttpStatus httpStatus;
 

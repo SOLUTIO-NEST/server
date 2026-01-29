@@ -19,10 +19,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -84,5 +84,40 @@ public class Applicant extends BaseEntity implements UserDetails {
         if (!passwordEncoder.matches(rawPassword, this.password)) {
             throw new GeneralException(Status.INVALID_PASSWORD);
         }
+    }
+    public static Applicant create(
+        String studentId,
+        Recruitment recruitment,
+        String email,
+        String password,
+        String department,
+        String name,
+        String phoneNumber,
+        String bojId,
+        MainLanguage mainLanguage,
+        String applyReason,
+        PasswordEncoder passwordEncoder
+    ) {
+        return new Applicant(
+            studentId,
+            recruitment,
+            email,
+            passwordEncoder.encode(password),
+            department,
+            name,
+            phoneNumber,
+            bojId,
+            mainLanguage,
+            applyReason,
+            false
+        );
+    }
+
+    public void approve() {
+        this.isApprove = true;
+    }
+
+    public void reject() {
+        this.isApprove = false;
     }
 }
