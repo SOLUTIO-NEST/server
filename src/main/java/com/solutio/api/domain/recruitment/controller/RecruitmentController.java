@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Recruitment", description = "모집 일정")
 public class RecruitmentController {
 
-    RecruitmentService recruitmentService;
+    private final RecruitmentService recruitmentService;
 
     @Operation(summary = "[STAFF] 모집 공고 등록", description = "ROLE_STAFF 이상의 권한이 필요함")
     @PreAuthorize("hasRole('STAFF')")

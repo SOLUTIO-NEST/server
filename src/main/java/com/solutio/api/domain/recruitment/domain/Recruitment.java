@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
@@ -50,6 +51,7 @@ public class Recruitment extends BaseEntity {
         this.title = title;
         this.startDateTime = startDateTime;
         this.endDateTime = endDateTime;
+        this.isDeleted = false;
     }
 
     public static Recruitment create(

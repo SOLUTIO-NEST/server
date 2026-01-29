@@ -3,6 +3,7 @@ package com.solutio.api.domain.applicant.controller;
 import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
 import com.solutio.api.domain.applicant.service.ApplicantService;
+import com.solutio.api.global.request.BasePageRequest;
 import com.solutio.api.global.response.ApiResponse;
 import com.solutio.api.global.response.Status;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
 import com.solutio.api.global.response.PageResponse;
-import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 
@@ -88,9 +88,11 @@ public class ApplicantController {
     @GetMapping("/{recruitmentId}")
     public ApiResponse<PageResponse<ApplicantResponseDto>> getApplicants(
             @RequestParam(name = "recruitmentId") Long recruitmentId,
-            @PageableDefault(size = 10) Pageable pageable
-    ) {
-        PageResponse<ApplicantResponseDto> response = applicantService.getApplicants(recruitmentId, pageable);
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        BasePageRequest pageRequest = new BasePageRequest(page, size);
+        PageResponse<ApplicantResponseDto> response = applicantService.getApplicants(recruitmentId,
+                pageRequest.toPageable());
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }
 

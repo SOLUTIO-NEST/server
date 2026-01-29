@@ -2,10 +2,12 @@ package com.solutio.api.domain.recruitment.dto.response;
 
 import com.solutio.api.domain.recruitment.domain.Recruitment;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Builder
+@Getter
 public class RecruitmentResponseDto {
 
     private Long id;

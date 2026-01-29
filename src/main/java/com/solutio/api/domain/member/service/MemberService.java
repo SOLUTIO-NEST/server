@@ -23,7 +23,7 @@ public class MemberService {
         Member member = memberRepository.findById(applicant.getStudentId()).orElse(null);
         if(member != null) return member;
 
-        member = Member.create(
+        member = Member.createFromApplicant(
             applicant.getStudentId(),
             applicant.getEmail(),
             applicant.getPassword(),
@@ -31,8 +31,7 @@ public class MemberService {
             applicant.getName(),
             applicant.getPhoneNumber(),
             applicant.getBojId(),
-            applicant.getMainLanguage(),
-            passwordEncoder
+            applicant.getMainLanguage()
         );
 
         return memberRepository.save(member);

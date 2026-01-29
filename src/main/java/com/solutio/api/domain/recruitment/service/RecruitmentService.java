@@ -22,7 +22,7 @@ public class RecruitmentService {
     }
 
     public Recruitment getRecruitment() {
-        return recruitmentRepository.findByIsDeletedIsNull();
+        return recruitmentRepository.findFirstByIsDeleted(false);
     }
 
     @Transactional
@@ -50,6 +50,7 @@ public class RecruitmentService {
         return recruitment.getId();
     }
 
+    @Transactional
     public Long deleteRecruitment(Long recruitmentId) {
         Recruitment recruitment = recruitmentRepository.findById(recruitmentId)
             .orElseThrow(() -> new GeneralException(Status.RECRUITMENT_NOT_FOUND));
