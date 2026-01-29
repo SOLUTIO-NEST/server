@@ -28,7 +28,7 @@ public class RecruitmentController {
 
     private final RecruitmentService recruitmentService;
 
-    @Operation(summary = "[STAFF] 모집 공고 등록", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @Operation(summary = "[Staff] 모집 공고 등록", description = "ROLE_STAFF 이상의 권한이 필요함")
     @PreAuthorize("hasRole('STAFF')")
     @PostMapping("")
     public ApiResponse<?> createRecruitment(
@@ -38,7 +38,7 @@ public class RecruitmentController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
     }
 
-    @Operation(summary = "모집 공고 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @Operation(summary = "[Anonymous] 모집 공고 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @GetMapping("")
     public ApiResponse<RecruitmentResponseDto> retrieveRecruitment(
     ) {
@@ -46,7 +46,7 @@ public class RecruitmentController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }
 
-    @Operation(summary = "[STAFF] 모집 공고 수정", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @Operation(summary = "[Staff] 모집 공고 수정", description = "ROLE_STAFF 이상의 권한이 필요함")
     @PreAuthorize("hasRole('STAFF')")
     @PatchMapping("/{recruitmentId}")
     public ApiResponse<?> updateRecruitment(
@@ -57,7 +57,7 @@ public class RecruitmentController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
     }
 
-    @Operation(summary = "[STAFF] 모집 공고 삭제", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @Operation(summary = "[Staff] 모집 공고 삭제", description = "ROLE_STAFF 이상의 권한이 필요함")
     @PreAuthorize("hasRole('STAFF')")
     @DeleteMapping("/{recruitmentId}")
     public ApiResponse<?> deleteRecruitment(

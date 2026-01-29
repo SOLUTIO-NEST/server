@@ -34,7 +34,7 @@ import java.util.List;
 public class ApplicantController {
     private final ApplicantService applicantService;
 
-    @Operation(summary = "동아리 지원", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @Operation(summary = "[Anonymous] 동아리 지원", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @PostMapping("")
     public ApiResponse<String> applyForClub(
         @Valid @RequestBody ApplicantCreateRequestDto requestDto
@@ -83,7 +83,7 @@ public class ApplicantController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), resultStudentId);
     }
 
-    @Operation(summary = "지원자 목록 조회", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @Operation(summary = "[Staff] 지원자 목록 조회", description = "ROLE_STAFF 이상의 권한이 필요함")
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{recruitmentId}")
     public ApiResponse<PageResponse<ApplicantResponseDto>> getApplicants(
@@ -96,7 +96,7 @@ public class ApplicantController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }
 
-    @Operation(summary = "합격 여부 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @Operation(summary = "[Anonymous] 합격 여부 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @GetMapping("/my")
     public ApiResponse<?> checkApplicantPass() {
         ApplicantPassResponseDto response = applicantService.checkPassStatus();
