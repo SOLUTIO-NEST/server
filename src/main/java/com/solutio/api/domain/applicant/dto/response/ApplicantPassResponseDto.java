@@ -2,7 +2,9 @@ package com.solutio.api.domain.applicant.dto.response;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
 import lombok.Builder;
+import lombok.Getter;
 
+@Getter
 @Builder
 public class ApplicantPassResponseDto {
 
