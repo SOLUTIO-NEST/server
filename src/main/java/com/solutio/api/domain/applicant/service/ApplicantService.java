@@ -4,6 +4,7 @@ import com.solutio.api.domain.applicant.domain.Applicant;
 import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
+import com.solutio.api.domain.applicant.dto.response.ApplicantDetailResponseDto;
 import com.solutio.api.global.response.PageResponse;
 import com.solutio.api.domain.applicant.repository.ApplicantRepository;
 import com.solutio.api.domain.member.domain.Member;
@@ -112,5 +113,12 @@ public class ApplicantService {
     public PageResponse<ApplicantResponseDto> getApplicants(Long recruitmentId, Pageable pageable) {
         Page<Applicant> applicants = applicantRepository.findAllByRecruitmentId(recruitmentId, pageable);
         return PageResponse.from(applicants.map(ApplicantResponseDto::from));
+    }
+
+    public ApplicantDetailResponseDto getApplicant(String studentId) {
+        Applicant applicant = applicantRepository.findById(studentId)
+                .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+
+        return ApplicantDetailResponseDto.from(applicant);
     }
 }

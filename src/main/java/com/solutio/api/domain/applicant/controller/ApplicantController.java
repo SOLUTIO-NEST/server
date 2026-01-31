@@ -2,6 +2,7 @@ package com.solutio.api.domain.applicant.controller;
 
 import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
+import com.solutio.api.domain.applicant.dto.response.ApplicantDetailResponseDto;
 import com.solutio.api.domain.applicant.service.ApplicantService;
 import com.solutio.api.global.request.BasePageRequest;
 import com.solutio.api.global.response.ApiResponse;
@@ -22,8 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
 import com.solutio.api.global.response.PageResponse;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 
 import java.util.List;
 
@@ -37,8 +36,7 @@ public class ApplicantController {
     @Operation(summary = "[Anonymous] 동아리 지원", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @PostMapping("")
     public ApiResponse<String> applyForClub(
-        @Valid @RequestBody ApplicantCreateRequestDto requestDto
-    ) {
+            @Valid @RequestBody ApplicantCreateRequestDto requestDto) {
         String id = applicantService.applyMember(requestDto);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
     }
@@ -87,9 +85,10 @@ public class ApplicantController {
     @PreAuthorize("hasRole('STAFF')")
     @GetMapping("/{recruitmentId}")
     public ApiResponse<PageResponse<ApplicantResponseDto>> getApplicants(
-            @RequestParam(name = "recruitmentId") Long recruitmentId,
+            @PathVariable(name = "recruitmentId") Long recruitmentId,
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
         BasePageRequest pageRequest = new BasePageRequest(page, size);
         PageResponse<ApplicantResponseDto> response = applicantService.getApplicants(recruitmentId,
                 pageRequest.toPageable());
@@ -100,6 +99,16 @@ public class ApplicantController {
     @GetMapping("/my")
     public ApiResponse<?> checkApplicantPass() {
         ApplicantPassResponseDto response = applicantService.checkPassStatus();
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
+    }
+
+    @Operation(summary = "[Staff] 지원자 상세 조회", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @PreAuthorize("hasRole('STAFF')")
+    @GetMapping("/detail/{studentId}")
+    public ApiResponse<ApplicantDetailResponseDto> getApplicant(
+            @PathVariable(name = "studentId") String studentId
+    ) {
+        ApplicantDetailResponseDto response = applicantService.getApplicant(studentId);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }
 }
