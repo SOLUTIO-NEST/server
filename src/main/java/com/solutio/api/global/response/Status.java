@@ -28,9 +28,10 @@ public enum Status {
 
     //
     RECRUITMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "RECRUITMENT404", "모집이 존재하지 않습니다."),
+    RECRUITMENT_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "RECRUITMENT400", "모집 공고가 활성 상태가 아닙니다."),
 
-    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "DATE400", "시작 날짜는 종료 날짜보다 앞설 수 없습니다.")
-
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "DATE400", "시작 날짜는 종료 날짜보다 앞설 수 없습니다."),
+    INVALID_INQUIRY_PERIOD(HttpStatus.BAD_REQUEST, "DATE400", "모집 종료일이 현재 날짜 기준 14일을 초과했거나, 아직 모집이 종료되지 않았습니다."),
     ;
     private final HttpStatus httpStatus;
 
