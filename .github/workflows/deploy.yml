@@ -34,8 +34,8 @@ jobs:
           platforms: linux/arm64  # 라즈베리파이용
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/server:latest
-            ghcr.io/${{ github.repository_owner }}/server:${{ github.sha }}
+            ghcr.io/solutio-nest/server:latest
+            ghcr.io/solutio-nest/server:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -54,6 +54,6 @@ jobs:
           script: |
             cd ~/solutio-deploy
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker-compose pull backend
-            docker-compose up -d backend
+            docker compose pull backend
+            docker compose up -d backend
             docker image prune -f
