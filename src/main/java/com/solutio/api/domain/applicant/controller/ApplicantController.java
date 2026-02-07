@@ -95,7 +95,8 @@ public class ApplicantController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }
 
-    @Operation(summary = "[Anonymous] 합격 여부 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @Operation(summary = "[Guest] 합격 여부 조회", description = "ROLE_GUEST 이상의 권한이 필요함")
+    @PreAuthorize("hasRole('GUEST')")
     @GetMapping("/my")
     public ApiResponse<?> checkApplicantPass() {
         ApplicantPassResponseDto response = applicantService.checkPassStatus();

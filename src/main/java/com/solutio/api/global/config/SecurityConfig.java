@@ -40,7 +40,6 @@ public class SecurityConfig {
     };
 
     private static final String[] ALLOWED_ALL_API_ENDPOINTS_GET = {
-        "/api/v1/applicants/my",
         "/api/v1/recruitments",
     };
 
