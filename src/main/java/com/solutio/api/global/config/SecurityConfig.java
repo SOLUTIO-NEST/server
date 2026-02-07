@@ -5,6 +5,7 @@ import com.solutio.api.global.auth.jwt.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,7 +23,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final TokenProvider tokenProvider;
 
-    private static final String[] ALLOWED = {
+    private static final String[] ALLOWED_ALL = {
             "/",
             "/v2/api-docs",
             "/swagger-resources",
@@ -34,9 +35,17 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/api/v1/login",
-            "/api/v1/applicants",
             "/test/**",
             "/actuator/health"
+    };
+
+    private static final String[] ALLOWED_ALL_API_ENDPOINTS_GET = {
+        "/api/v1/applicants/my",
+        "/api/v1/recruitments",
+    };
+
+    private static final String[] ALLOWED_ALL_API_ENDPOINTS_POST = {
+        "/api/v1/applicants",
     };
 
     @Bean
@@ -44,7 +53,9 @@ public class SecurityConfig {
         http
                 // URL 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(ALLOWED).permitAll()
+                        .requestMatchers(ALLOWED_ALL).permitAll()
+                        .requestMatchers(HttpMethod.GET,ALLOWED_ALL_API_ENDPOINTS_GET).permitAll()
+                        .requestMatchers(HttpMethod.POST,ALLOWED_ALL_API_ENDPOINTS_POST).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable);
