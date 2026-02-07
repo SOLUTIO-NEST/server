@@ -32,6 +32,18 @@ spring:
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health  # health만 공개
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized  # 인증된 경우만 상세 정보
+  health:
+    defaults:
+      enabled: true
 server:
   port: ${SERVER_PORT}
 
