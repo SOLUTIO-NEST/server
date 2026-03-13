@@ -14,6 +14,7 @@ import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +31,12 @@ public class ApplicantService {
     private final RecruitmentService recruitmentService;
     private final ApplicantRepository applicantRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${security.group-account.number}")
+    private String groupAccountNumber;
+
+    @Value("${security.group-account.link}")
+    private String groupAccountLink;
 
     @Transactional
     public String applyMember(ApplicantCreateRequestDto requestDto) {
@@ -114,7 +121,7 @@ public class ApplicantService {
 
         recruitment.validateEndDateWithin14Days();
 
-        return ApplicantPassResponseDto.from(applicant);
+        return ApplicantPassResponseDto.from(applicant,groupAccountLink, groupAccountNumber);
     }
 
     public PageResponse<ApplicantResponseDto> getApplicants(Long recruitmentId, Pageable pageable) {
