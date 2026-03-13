@@ -47,7 +47,6 @@ management:
 server:
   port: ${SERVER_PORT}
 
-
 jwt:
   issuer: ${JWT_ISSUER}
   secret_key: ${JWT_SECRET_KEY}
