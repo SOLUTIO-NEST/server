@@ -34,6 +34,8 @@ public class ApplicantService {
     @Transactional
     public String applyMember(ApplicantCreateRequestDto requestDto) {
 
+        recruitmentService.validateRecruitmentForApplication(requestDto.getRecruitmentId());
+
         Recruitment recruitment = recruitmentService.getRecruitment(requestDto.getRecruitmentId());
 
         Applicant applicant = Applicant.create(
@@ -104,8 +106,13 @@ public class ApplicantService {
 
     public ApplicantPassResponseDto checkPassStatus() {
         String studentId = memberService.getMyUserId();
+
         Applicant applicant = applicantRepository.findById(studentId)
                 .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+
+        Recruitment recruitment = applicant.getRecruitment();
+
+        recruitment.validateEndDateWithin14Days();
 
         return ApplicantPassResponseDto.from(applicant);
     }

@@ -5,14 +5,17 @@ import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
@@ -40,6 +43,10 @@ public class Recruitment extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime endDateTime;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private RecruitmentStatus status;
+
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
@@ -51,6 +58,7 @@ public class Recruitment extends BaseEntity {
         this.title = title;
         this.startDateTime = startDateTime;
         this.endDateTime = endDateTime;
+        this.status = RecruitmentStatus.UPCOMING;
         this.isDeleted = false;
     }
 
@@ -73,6 +81,16 @@ public class Recruitment extends BaseEntity {
         validateDateRange();
     }
 
+    public void validateRecruiting() {
+        LocalDateTime now = LocalDateTime.now();
+        if (!status.isRecruiting()) {
+            throw new GeneralException(Status.RECRUITMENT_NOT_ACTIVE);
+        }
+        if (now.isBefore(startDateTime) || now.isAfter(endDateTime)) {
+            throw new GeneralException(Status.RECRUITMENT_NOT_ACTIVE);
+        }
+    }
+
     private void validateDateRange() {
         if (startDateTime.isAfter(endDateTime)) {
             throw new GeneralException(Status.INVALID_DATE_RANGE);
@@ -81,5 +99,18 @@ public class Recruitment extends BaseEntity {
 
     public void delete() {
         this.isDeleted=true;
+    }
+
+    public void validateEndDateWithin14Days() {
+        LocalDate today = LocalDate.now();
+        LocalDate endDateLocal = this.endDateTime.toLocalDate();
+
+        if (endDateLocal.isBefore(today.minusDays(14)) || !this.isRecruitmentEnd()) {
+            throw new GeneralException(Status.INVALID_INQUIRY_PERIOD);
+        }
+    }
+
+    public boolean isRecruitmentEnd() {
+        return LocalDateTime.now().isAfter(endDateTime) || status.isClosed();
     }
 }

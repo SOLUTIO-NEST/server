@@ -25,6 +25,12 @@ public class RecruitmentService {
         return recruitmentRepository.findFirstByIsDeleted(false);
     }
 
+    public void validateRecruitmentForApplication(Long recruitmentId) {
+        Recruitment recruitment = recruitmentRepository.findById(recruitmentId)
+            .orElseThrow(() -> new GeneralException(Status.RECRUITMENT_NOT_FOUND));
+        recruitment.validateRecruiting();
+    }
+
     @Transactional
     public Long createRecruitment(RecruitmentCreateRequestDto requestDto) {
         Recruitment recruitment = Recruitment.create(
