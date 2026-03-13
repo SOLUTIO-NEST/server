@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum LevelClass {
-    SEED("SEED","시드반"),
-    BRANCH("BRANCH", "브랜치반"),
-    TREE("TREE", "트리반"),
+    SEED("SEED","Seed"),
+    BRANCH("BRANCH", "Branch"),
+    TREE("TREE", "Tree"),
     ;
 
     private final String key;

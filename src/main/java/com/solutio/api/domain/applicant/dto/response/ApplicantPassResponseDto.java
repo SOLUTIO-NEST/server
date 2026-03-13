@@ -9,6 +9,7 @@ import lombok.Getter;
 public class ApplicantPassResponseDto {
 
     private String name;
+    private String levelClass;
     private String groupAccountLink;
     private String groupAccountNumber;
     private Long recruitmentId;
@@ -17,6 +18,7 @@ public class ApplicantPassResponseDto {
     public static ApplicantPassResponseDto from(Applicant applicant,String groupAccountLink, String groupAccountNumber) {
         return ApplicantPassResponseDto.builder()
             .name(applicant.getName())
+            .levelClass(applicant.getLevelClass().getDescription())
             .recruitmentId(applicant.getRecruitment().getId())
             .groupAccountLink(applicant.getIsApprove() ? groupAccountLink : null)
             .groupAccountLink(applicant.getIsApprove() ? groupAccountNumber : null)
