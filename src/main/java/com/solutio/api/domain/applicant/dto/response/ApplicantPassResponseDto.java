@@ -21,7 +21,7 @@ public class ApplicantPassResponseDto {
         Recruitment recruitment = applicant.getRecruitment();
         return ApplicantPassResponseDto.builder()
             .name(applicant.getName())
-            .levelClass(applicant.getLevelClass().getDescription())
+            .levelClass((applicant.getLevelClass() != null) ? applicant.getLevelClass().getDescription() : "미정")
             .recruitmentId(recruitment.getId())
             .groupAccountLink(applicant.getIsApprove() ? groupAccountLink : null)
             .groupAccountNumber(applicant.getIsApprove() ? groupAccountNumber : null)
