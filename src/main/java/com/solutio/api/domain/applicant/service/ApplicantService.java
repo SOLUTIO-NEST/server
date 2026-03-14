@@ -137,6 +137,7 @@ public class ApplicantService {
         return ApplicantDetailResponseDto.from(applicant);
     }
 
+    @Transactional
     public String updateApplicantLevel(String studentId, ApplicantUpdateClassLevelRequestDto requestDto) {
         Applicant applicant = applicantRepository.findById(studentId)
             .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
