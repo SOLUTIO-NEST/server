@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,14 +19,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/v1/login")
 @Tag(name = "Login", description = "로그인")
 public class LoginController {
 
     private final LoginService loginService;
 
-    private final String authHeader = "X-Solutio-Auth";
+    private final String authHeader;
+
+    public LoginController(
+        LoginService loginService,
+        @Value("${security.auth.header}") String authHeader) {
+
+        this.loginService = loginService;
+        this.authHeader = authHeader;
+    }
 
     @Operation(summary = "로그인", description = "ROLE_ANONYMOUS 권한이 필요함")
     @PostMapping("")

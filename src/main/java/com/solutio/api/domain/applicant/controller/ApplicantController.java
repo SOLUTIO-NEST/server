@@ -1,6 +1,7 @@
 package com.solutio.api.domain.applicant.controller;
 
-import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateUpdateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantUpdateClassLevelRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantDetailResponseDto;
 import com.solutio.api.domain.applicant.service.ApplicantService;
@@ -36,7 +37,7 @@ public class ApplicantController {
     @Operation(summary = "[Anonymous] 동아리 지원", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @PostMapping("")
     public ApiResponse<String> applyForClub(
-            @Valid @RequestBody ApplicantCreateRequestDto requestDto) {
+            @Valid @RequestBody ApplicantCreateUpdateRequestDto requestDto) {
         String id = applicantService.applyMember(requestDto);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
     }
@@ -78,6 +79,17 @@ public class ApplicantController {
         @PathVariable(name = "studentId") String studentId
     ) {
         String resultStudentId = applicantService.rejectApplicant(studentId);
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), resultStudentId);
+    }
+
+    @Operation(summary = "[Staff] 지원자 계정 업데이트", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @PreAuthorize("hasRole('STAFF')")
+    @PatchMapping("/level/{studentId}")
+    public ApiResponse<?> updateApplicantClassLevel(
+        @PathVariable(name = "studentId") String studentId,
+        @RequestBody ApplicantUpdateClassLevelRequestDto requestDto
+    ) {
+        String resultStudentId = applicantService.updateApplicantLevel(studentId,requestDto);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), resultStudentId);
     }
 

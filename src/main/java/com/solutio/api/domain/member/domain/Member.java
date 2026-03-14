@@ -60,6 +60,8 @@ public class Member extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    private ClassLevel classLevel;
+
     @Column(nullable = false)
     private Boolean isDeleted;
 
@@ -71,7 +73,8 @@ public class Member extends BaseEntity implements UserDetails {
         String name,
         String phoneNumber,
         String bojId,
-        MainLanguage mainLanguage
+        MainLanguage mainLanguage,
+        ClassLevel classLevel
     ) {
         return new Member(
             studentId,
@@ -83,6 +86,7 @@ public class Member extends BaseEntity implements UserDetails {
             bojId,
             mainLanguage,
             Role.USER,
+            classLevel,
             false
         );
     }
