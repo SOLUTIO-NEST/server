@@ -1,6 +1,8 @@
 package com.solutio.api.domain.applicant.domain;
 
-import com.solutio.api.domain.member.domain.LevelClass;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateUpdateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantUpdateClassLevelRequestDto;
+import com.solutio.api.domain.member.domain.ClassLevel;
 import com.solutio.api.domain.member.domain.MainLanguage;
 import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.global.domain.BaseEntity;
@@ -68,7 +70,7 @@ public class Applicant extends BaseEntity implements UserDetails {
     @Column(length = 1024)
     private String applyReason;
 
-    private LevelClass levelClass;
+    private ClassLevel classLevel;
 
     @Column(nullable = false)
     private Boolean isApprove;
@@ -123,5 +125,9 @@ public class Applicant extends BaseEntity implements UserDetails {
 
     public void reject() {
         this.isApprove = false;
+    }
+
+    public void updateClassLevel(ApplicantUpdateClassLevelRequestDto requestDto) {
+        this.classLevel = requestDto.getClassLevel();
     }
 }

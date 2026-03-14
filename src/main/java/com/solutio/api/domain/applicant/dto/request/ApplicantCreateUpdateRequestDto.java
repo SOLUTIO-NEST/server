@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
 @Getter
-public class ApplicantCreateRequestDto {
+public class ApplicantCreateUpdateRequestDto {
     @NotBlank(message = "학번을 입력해야 합니다.")
     @Pattern(regexp = "^\\d{9}$", message = "학번은 숫자 9자리여야 합니다.")
     private String studentId;

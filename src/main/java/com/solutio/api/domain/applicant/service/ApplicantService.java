@@ -1,7 +1,8 @@
 package com.solutio.api.domain.applicant.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
-import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateUpdateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantUpdateClassLevelRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantDetailResponseDto;
@@ -39,7 +40,7 @@ public class ApplicantService {
     private String groupAccountLink;
 
     @Transactional
-    public String applyMember(ApplicantCreateRequestDto requestDto) {
+    public String applyMember(ApplicantCreateUpdateRequestDto requestDto) {
 
         recruitmentService.validateRecruitmentForApplication(requestDto.getRecruitmentId());
 
@@ -134,5 +135,14 @@ public class ApplicantService {
                 .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
 
         return ApplicantDetailResponseDto.from(applicant);
+    }
+
+    public String updateApplicantLevel(String studentId, ApplicantUpdateClassLevelRequestDto requestDto) {
+        Applicant applicant = applicantRepository.findById(studentId)
+            .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+
+        applicant.updateClassLevel(requestDto);
+
+        return applicant.getStudentId();
     }
 }

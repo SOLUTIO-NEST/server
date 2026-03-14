@@ -32,7 +32,7 @@ public class MemberService {
             applicant.getPhoneNumber(),
             applicant.getBojId(),
             applicant.getMainLanguage(),
-            applicant.getLevelClass()
+            applicant.getClassLevel()
             );
 
         return memberRepository.save(member);

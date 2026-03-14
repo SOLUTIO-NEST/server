@@ -22,7 +22,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.logging.Level;
 
 @Entity
 @Getter
@@ -61,7 +60,7 @@ public class Member extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private LevelClass levelClass;
+    private ClassLevel classLevel;
 
     @Column(nullable = false)
     private Boolean isDeleted;
@@ -75,7 +74,7 @@ public class Member extends BaseEntity implements UserDetails {
         String phoneNumber,
         String bojId,
         MainLanguage mainLanguage,
-        LevelClass levelClass
+        ClassLevel classLevel
     ) {
         return new Member(
             studentId,
@@ -87,7 +86,7 @@ public class Member extends BaseEntity implements UserDetails {
             bojId,
             mainLanguage,
             Role.USER,
-            levelClass,
+            classLevel,
             false
         );
     }

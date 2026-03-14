@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum LevelClass {
+public enum ClassLevel {
     SEED("SEED","Seed"),
     BRANCH("BRANCH", "Branch"),
     TREE("TREE", "Tree"),
