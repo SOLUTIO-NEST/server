@@ -19,6 +19,7 @@ public class ApplicantDetailResponseDto {
     private final MainLanguage mainLanguage;
     private final String applyReason;
     private final Boolean isApprove;
+    private final String classLevel;
     private final LocalDateTime createdAt;
 
     public static ApplicantDetailResponseDto from(Applicant applicant) {
@@ -32,6 +33,7 @@ public class ApplicantDetailResponseDto {
                 .mainLanguage(applicant.getMainLanguage())
                 .applyReason(applicant.getApplyReason())
                 .isApprove(applicant.getIsApprove())
+                .classLevel(applicant.getClassLevel() == null ? null: applicant.getClassLevel().getDescription())
                 .createdAt(applicant.getCreatedAt())
                 .build();
     }

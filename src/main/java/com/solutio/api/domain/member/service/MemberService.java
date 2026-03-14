@@ -31,8 +31,9 @@ public class MemberService {
             applicant.getName(),
             applicant.getPhoneNumber(),
             applicant.getBojId(),
-            applicant.getMainLanguage()
-        );
+            applicant.getMainLanguage(),
+            applicant.getClassLevel()
+            );
 
         return memberRepository.save(member);
     }

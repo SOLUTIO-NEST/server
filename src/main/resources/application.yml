@@ -47,8 +47,15 @@ management:
 server:
   port: ${SERVER_PORT}
 
-
 jwt:
   issuer: ${JWT_ISSUER}
   secret_key: ${JWT_SECRET_KEY}
+
+security:
+  auth:
+    header: X-Solutio-Auth
+  group-account:
+    link: ${GROUP_ACCOUNT_LINK}
+    number: ${GROUP_ACCOUNT_NUMBER}
+    fee: ${GROUP_ACCOUNT_FEE}
 
