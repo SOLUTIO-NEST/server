@@ -1,6 +1,7 @@
 package com.solutio.api.domain.applicant.dto.response;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
+import com.solutio.api.domain.recruitment.domain.Recruitment;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,15 +14,18 @@ public class ApplicantPassResponseDto {
     private String groupAccountLink;
     private String groupAccountNumber;
     private Long recruitmentId;
+    private String passedMessage;
     private Boolean isPassed;
 
-    public static ApplicantPassResponseDto from(Applicant applicant,String groupAccountLink, String groupAccountNumber) {
+    public static ApplicantPassResponseDto from(Applicant applicant, String groupAccountLink, String groupAccountNumber) {
+        Recruitment recruitment = applicant.getRecruitment();
         return ApplicantPassResponseDto.builder()
             .name(applicant.getName())
             .levelClass(applicant.getLevelClass().getDescription())
-            .recruitmentId(applicant.getRecruitment().getId())
+            .recruitmentId(recruitment.getId())
             .groupAccountLink(applicant.getIsApprove() ? groupAccountLink : null)
-            .groupAccountLink(applicant.getIsApprove() ? groupAccountNumber : null)
+            .groupAccountNumber(applicant.getIsApprove() ? groupAccountNumber : null)
+            .passedMessage(applicant.getIsApprove() ? recruitment.getPassedMessage() : null)
             .isPassed(applicant.getIsApprove())
             .build();
     }

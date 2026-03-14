@@ -1,5 +1,6 @@
 package com.solutio.api.domain.recruitment.domain;
 
+import com.solutio.api.domain.recruitment.dto.request.RecruitmentUpdateRequestDto;
 import com.solutio.api.global.domain.BaseEntity;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
@@ -13,7 +14,9 @@ import jakarta.persistence.Id;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,6 +50,9 @@ public class Recruitment extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private RecruitmentStatus status;
 
+    @Size(max=1024)
+    private String passedMessage;
+
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
@@ -74,10 +80,11 @@ public class Recruitment extends BaseEntity {
         return recruitment;
     }
 
-    public void update(String title, LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        this.title = title;
-        this.startDateTime = startDateTime;
-        this.endDateTime = endDateTime;
+    public void update(RecruitmentUpdateRequestDto requestDto) {
+        Optional.ofNullable(requestDto.getTitle()).ifPresent(title -> this.title = title);
+        Optional.ofNullable(requestDto.getStartDateTime()).ifPresent(startDateTime -> this.startDateTime = startDateTime);
+        Optional.ofNullable(requestDto.getEndDateTime()).ifPresent(endDateTime -> this.endDateTime = endDateTime);
+        Optional.ofNullable(requestDto.getPassedMessage()).ifPresent(passedMessage -> this.passedMessage = passedMessage);
         validateDateRange();
     }
 

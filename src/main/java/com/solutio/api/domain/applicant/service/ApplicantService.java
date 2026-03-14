@@ -121,7 +121,7 @@ public class ApplicantService {
 
         recruitment.validateEndDateWithin14Days();
 
-        return ApplicantPassResponseDto.from(applicant,groupAccountLink, groupAccountNumber);
+        return ApplicantPassResponseDto.from(applicant, groupAccountLink, groupAccountNumber);
     }
 
     public PageResponse<ApplicantResponseDto> getApplicants(Long recruitmentId, Pageable pageable) {

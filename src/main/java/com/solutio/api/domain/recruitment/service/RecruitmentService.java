@@ -47,11 +47,7 @@ public class RecruitmentService {
         Recruitment recruitment = recruitmentRepository.findById(recruitmentId)
             .orElseThrow(() -> new GeneralException(Status.RECRUITMENT_NOT_FOUND));
 
-        recruitment.update(
-            requestDto.getTitle(),
-            requestDto.getStartDateTime(),
-            requestDto.getEndDateTime()
-        );
+        recruitment.update(requestDto);
 
         return recruitment.getId();
     }
