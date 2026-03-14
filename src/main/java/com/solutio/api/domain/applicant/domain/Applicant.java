@@ -70,6 +70,7 @@ public class Applicant extends BaseEntity implements UserDetails {
     @Column(length = 1024)
     private String applyReason;
 
+    @Enumerated(EnumType.STRING)
     private ClassLevel classLevel;
 
     @Column(nullable = false)
