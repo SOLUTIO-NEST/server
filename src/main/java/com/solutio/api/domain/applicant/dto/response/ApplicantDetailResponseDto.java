@@ -33,7 +33,7 @@ public class ApplicantDetailResponseDto {
                 .mainLanguage(applicant.getMainLanguage())
                 .applyReason(applicant.getApplyReason())
                 .isApprove(applicant.getIsApprove())
-                .classLevel(applicant.getClassLevel().getDescription())
+                .classLevel(applicant.getClassLevel() == null ? null: applicant.getClassLevel().getDescription())
                 .createdAt(applicant.getCreatedAt())
                 .build();
     }
