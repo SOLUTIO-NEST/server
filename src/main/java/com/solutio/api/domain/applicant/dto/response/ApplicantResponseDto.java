@@ -14,6 +14,7 @@ public class ApplicantResponseDto {
     private final String department;
     private final String phoneNumber;
     private final Boolean isApprove;
+    private final String classLevel;
     private final LocalDateTime createdAt;
 
     public static ApplicantResponseDto from(Applicant applicant) {
@@ -23,6 +24,7 @@ public class ApplicantResponseDto {
                 .department(applicant.getDepartment())
                 .phoneNumber(applicant.getPhoneNumber())
                 .isApprove(applicant.getIsApprove())
+                .classLevel(applicant.getClassLevel() == null ? null: applicant.getClassLevel().getDescription())
                 .createdAt(applicant.getCreatedAt())
                 .build();
     }
