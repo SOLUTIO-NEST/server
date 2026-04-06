@@ -1,13 +1,10 @@
 package com.solutio.api.domain.member.domain;
 
+import com.solutio.api.domain.user.dto.request.UserUpdateRequestDto;
 import com.solutio.api.global.domain.BaseEntity;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -66,29 +63,37 @@ public class Member extends BaseEntity implements UserDetails {
     private Boolean isDeleted;
 
     public static Member createFromApplicant(
-        String studentId,
-        String email,
-        String password,
-        String department,
-        String name,
-        String phoneNumber,
-        String bojId,
-        MainLanguage mainLanguage,
-        ClassLevel classLevel
+            String studentId,
+            String email,
+            String password,
+            String department,
+            String name,
+            String phoneNumber,
+            String bojId,
+            MainLanguage mainLanguage,
+            ClassLevel classLevel
     ) {
         return new Member(
-            studentId,
-            email,
-            password,
-            department,
-            name,
-            phoneNumber,
-            bojId,
-            mainLanguage,
-            Role.USER,
-            classLevel,
-            false
+                studentId,
+                email,
+                password,
+                department,
+                name,
+                phoneNumber,
+                bojId,
+                mainLanguage,
+                Role.USER,
+                classLevel,
+                false
         );
+    }
+
+    public void updateMyInfo(UserUpdateRequestDto requestDto) {
+        this.name = requestDto.name();
+        this.department = requestDto.department();
+        this.phoneNumber = requestDto.phoneNumber();
+        this.bojId = requestDto.bojId();
+        this.mainLanguage = requestDto.mainLanguage();
     }
 
     public void isPasswordMatching(String rawPassword, PasswordEncoder passwordEncoder) {

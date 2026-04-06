@@ -5,6 +5,7 @@ import com.solutio.api.domain.applicant.repository.ApplicantRepository;
 import com.solutio.api.domain.member.domain.Member;
 import com.solutio.api.domain.member.repository.MemberRepository;
 import com.solutio.api.domain.member.service.MemberService;
+import com.solutio.api.domain.user.dto.request.UserUpdateRequestDto;
 import com.solutio.api.domain.user.dto.response.UserMyInfoResponseDto;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
@@ -20,6 +21,25 @@ public class UserService {
     private final MemberRepository memberRepository;
     private final ApplicantRepository applicantRepository;
     private final MemberService memberService;
+
+    @Transactional
+    public void updateMyInfo(UserUpdateRequestDto requestDto) {
+        String studentId = memberService.getMyUserId();
+        boolean isGuest = SecurityContextHolder.getContext()
+                .getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_GUEST"));
+
+        if (isGuest) {
+            Applicant applicant = applicantRepository.findById(studentId)
+                    .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
+            applicant.updateMyInfo(requestDto);
+            return;
+        }
+
+        Member member = memberRepository.findById(studentId)
+                .orElseThrow(() -> new GeneralException(Status.ACCOUNT_NOT_FOUND));
+        member.updateMyInfo(requestDto);
+    }
 
     public UserMyInfoResponseDto getMyInfo() {
         String studentId = memberService.getMyUserId();

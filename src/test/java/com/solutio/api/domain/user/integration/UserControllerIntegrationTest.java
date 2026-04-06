@@ -8,6 +8,7 @@ import com.solutio.api.domain.member.domain.Member;
 import com.solutio.api.domain.member.domain.Role;
 import com.solutio.api.domain.member.repository.MemberRepository;
 import com.solutio.api.global.auth.jwt.TokenProvider;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ class UserControllerIntegrationTest {
     @Autowired
     MemberRepository memberRepository;
 
+    @Autowired
+    EntityManager em;
+
     static final String STUDENT_ID = "202312345";
 
     private String generateToken(String studentId, String role) {
@@ -53,30 +57,37 @@ class UserControllerIntegrationTest {
                 .accept(MediaType.APPLICATION_JSON));
     }
 
-    private Applicant createApplicant(String studentId) {
-        return applicantRepository.save(Applicant.builder()
-                .studentId(studentId)
-                .email(studentId + "@kyonggi.ac.kr")
+    private MvcTestResultAssert updateRequest(String token, String body) {
+        return assertThat(mvcTester.patch().uri("/api/v1/users/me")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
+    }
+
+    private void createApplicant() {
+        applicantRepository.save(Applicant.builder()
+                .studentId(STUDENT_ID)
+                .email(STUDENT_ID + "@kyonggi.ac.kr")
                 .password("encoded_password")
                 .department("컴퓨터공학부")
                 .name("홍길동")
                 .phoneNumber("010-1234-5678")
-                .bojId(studentId + "_boj")
+                .bojId(STUDENT_ID + "_boj")
                 .mainLanguage(MainLanguage.JAVA)
                 .applyReason("지원 동기")
                 .isApprove(false)
                 .build());
     }
 
-    private Member createMember(String studentId) {
-        return memberRepository.save(Member.createFromApplicant(
-                studentId,
-                studentId + "@kyonggi.ac.kr",
+    private void createMember() {
+        memberRepository.save(Member.createFromApplicant(
+                STUDENT_ID,
+                STUDENT_ID + "@kyonggi.ac.kr",
                 "encoded_password",
                 "컴퓨터공학부",
                 "홍길동",
                 "010-1234-5678",
-                studentId + "_boj",
+                STUDENT_ID + "_boj",
                 MainLanguage.JAVA,
                 ClassLevel.SEED
         ));
@@ -85,7 +96,7 @@ class UserControllerIntegrationTest {
     @Test
     @DisplayName("ROLE_GUEST 토큰으로 자신의 Applicant 정보를 조회할 수 있다")
     void getMyInfo_asGuest_returnsApplicantInfo() {
-        createApplicant(STUDENT_ID);
+        createApplicant();
         String token = generateToken(STUDENT_ID, "GUEST");
 
         var result = request(token);
@@ -103,7 +114,7 @@ class UserControllerIntegrationTest {
     @Test
     @DisplayName("ROLE_USER 토큰으로 자신의 Member 정보를 조회할 수 있다")
     void getMyInfo_asUser_returnsMemberInfo() {
-        createMember(STUDENT_ID);
+        createMember();
         String token = generateToken(STUDENT_ID, "USER");
 
         var result = request(token);
@@ -137,5 +148,74 @@ class UserControllerIntegrationTest {
         String token = generateToken("999999999", "USER");
 
         request(token).hasStatus(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("ROLE_GUEST 토큰으로 Applicant 정보를 수정할 수 있다")
+    void updateMyInfo_asGuest_updatesApplicantInfo() {
+        createApplicant();
+        String token = generateToken(STUDENT_ID, "GUEST");
+
+        updateRequest(token, """
+                {"name": "김철수", "department": "소프트웨어공학과", "phoneNumber": "010-9999-8888", "bojId": "new_boj", "mainLanguage": "PYTHON"}
+                """).hasStatus2xxSuccessful();
+
+        em.flush();
+        em.clear();
+
+        Applicant updated = applicantRepository.findById(STUDENT_ID).orElseThrow();
+        assertThat(updated.getName()).isEqualTo("김철수");
+        assertThat(updated.getDepartment()).isEqualTo("소프트웨어공학과");
+        assertThat(updated.getPhoneNumber()).isEqualTo("010-9999-8888");
+        assertThat(updated.getBojId()).isEqualTo("new_boj");
+        assertThat(updated.getMainLanguage()).isEqualTo(MainLanguage.PYTHON);
+    }
+
+    @Test
+    @DisplayName("ROLE_USER 토큰으로 Member 정보를 수정할 수 있다")
+    void updateMyInfo_asUser_updatesMemberInfo() {
+        createMember();
+        String token = generateToken(STUDENT_ID, "USER");
+
+        updateRequest(token, """
+                {"name": "김철수", "department": "소프트웨어공학과", "phoneNumber": "010-9999-8888", "bojId": "new_boj", "mainLanguage": "PYTHON"}
+                """).hasStatus2xxSuccessful();
+
+        em.flush();
+        em.clear();
+
+        Member updated = memberRepository.findById(STUDENT_ID).orElseThrow();
+        assertThat(updated.getName()).isEqualTo("김철수");
+        assertThat(updated.getDepartment()).isEqualTo("소프트웨어공학과");
+        assertThat(updated.getPhoneNumber()).isEqualTo("010-9999-8888");
+        assertThat(updated.getBojId()).isEqualTo("new_boj");
+        assertThat(updated.getMainLanguage()).isEqualTo(MainLanguage.PYTHON);
+    }
+
+    @Test
+    @DisplayName("토큰 없이 수정 요청하면 403을 반환한다")
+    void updateMyInfo_withoutToken_returns403() {
+        assertThat(mvcTester.patch().uri("/api/v1/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\": \"김철수\"}"))
+                .hasStatus(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("전화번호 형식이 잘못되면 400을 반환한다")
+    void updateMyInfo_invalidPhoneNumber_returns400() {
+        createMember();
+        String token = generateToken(STUDENT_ID, "USER");
+
+        updateRequest(token, "{\"phoneNumber\": \"01012345678\"}").hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("이름이 빈 문자열이면 400을 반환한다")
+    void updateMyInfo_blankName_returns400() {
+        createMember();
+        String token = generateToken(STUDENT_ID, "USER");
+
+        updateRequest(token, "{\"name\": \"   \"}").hasStatus(HttpStatus.BAD_REQUEST);
     }
 }
