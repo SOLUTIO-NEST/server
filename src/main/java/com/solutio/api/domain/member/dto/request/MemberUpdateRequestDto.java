@@ -1,11 +1,11 @@
-package com.solutio.api.domain.user.dto.request;
+package com.solutio.api.domain.member.dto.request;
 
 import com.solutio.api.domain.member.domain.MainLanguage;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
-public record UserUpdateRequestDto(
+public record MemberUpdateRequestDto(
         @NotBlank(message = "이름은 빈 값일 수 없습니다.")
         String name,
 

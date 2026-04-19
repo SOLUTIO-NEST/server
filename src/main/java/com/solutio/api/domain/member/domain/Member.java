@@ -1,6 +1,6 @@
 package com.solutio.api.domain.member.domain;
 
-import com.solutio.api.domain.user.dto.request.UserUpdateRequestDto;
+import com.solutio.api.domain.member.dto.request.MemberUpdateRequestDto;
 import com.solutio.api.global.domain.BaseEntity;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
@@ -88,7 +88,7 @@ public class Member extends BaseEntity implements UserDetails {
         );
     }
 
-    public void updateMyInfo(UserUpdateRequestDto requestDto) {
+    public void updateMyInfo(MemberUpdateRequestDto requestDto) {
         this.name = requestDto.name();
         this.department = requestDto.department();
         this.phoneNumber = requestDto.phoneNumber();

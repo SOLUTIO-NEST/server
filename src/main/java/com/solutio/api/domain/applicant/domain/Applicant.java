@@ -4,7 +4,7 @@ import com.solutio.api.domain.applicant.dto.request.ApplicantUpdateClassLevelReq
 import com.solutio.api.domain.member.domain.ClassLevel;
 import com.solutio.api.domain.member.domain.MainLanguage;
 import com.solutio.api.domain.recruitment.domain.Recruitment;
-import com.solutio.api.domain.user.dto.request.UserUpdateRequestDto;
+import com.solutio.api.domain.member.dto.request.MemberUpdateRequestDto;
 import com.solutio.api.global.domain.BaseEntity;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
@@ -122,7 +122,7 @@ public class Applicant extends BaseEntity implements UserDetails {
         this.classLevel = requestDto.getClassLevel();
     }
 
-    public void updateMyInfo(UserUpdateRequestDto requestDto) {
+    public void updateMyInfo(MemberUpdateRequestDto requestDto) {
         this.name = requestDto.name();
         this.department = requestDto.department();
         this.phoneNumber = requestDto.phoneNumber();
