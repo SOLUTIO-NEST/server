@@ -61,8 +61,8 @@ public class TokenProvider {
     }
 
     public Set<SimpleGrantedAuthority> getRoles(String role) {
-        if (role.equals("MEMBER")) {
-            return Collections.singleton(new SimpleGrantedAuthority("ROLE_MEMBER"));
+        if (role.equals("USER")) {
+            return Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
         }
         if (role.equals("NEST")) {
             return Collections.singleton(new SimpleGrantedAuthority("ROLE_NEST"));
