@@ -37,7 +37,9 @@ dependencies {
 
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testRuntimeOnly 'com.h2database:h2'
 
 	// Security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -55,6 +57,9 @@ dependencies {
 
 	//Util
 	implementation 'com.google.code.gson:gson:2.13.2'
+
+	// Docker compose
+	runtimeOnly 'org.springframework.boot:spring-boot-docker-compose'
 }
 
 tasks.named('test') {
