@@ -32,6 +32,9 @@ public enum Status {
 
     INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "DATE400", "시작 날짜는 종료 날짜보다 앞설 수 없습니다."),
     INVALID_INQUIRY_PERIOD(HttpStatus.BAD_REQUEST, "DATE400", "모집 종료일이 현재 날짜 기준 14일을 초과했거나, 아직 모집이 종료되지 않았습니다."),
+
+    BLACKLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "BLACKLIST404", "블랙리스트에 존재하지 않습니다."),
+    BLACKLIST_ALREADY_EXISTS(HttpStatus.CONFLICT, "BLACKLIST409", "이미 블랙리스트에 등록된 사용자입니다."),
     ;
     private final HttpStatus httpStatus;
 
