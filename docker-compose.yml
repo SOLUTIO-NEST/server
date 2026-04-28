@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: solutio-db
+    container_name: solutio-postgres
     restart: unless-stopped
     environment:
       POSTGRES_DB: solutio
