@@ -46,7 +46,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/solutio-server:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/solutio-server:staging
+            ${{ secrets.DOCKERHUB_USERNAME }}/solutio-server:prod
 
   deploy:
     runs-on: ubuntu-latest

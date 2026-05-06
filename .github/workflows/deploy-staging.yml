@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - develop
-      - chore/#36
   workflow_dispatch:
 
 jobs:
