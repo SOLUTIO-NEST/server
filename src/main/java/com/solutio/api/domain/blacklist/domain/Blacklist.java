@@ -56,4 +56,19 @@ public class Blacklist extends BaseEntity {
 
     private String reason;
 
+    public static Blacklist create(String studentId, String email, String department,
+                                    String name, String phoneNumber, String reason) {
+        return Blacklist.builder()
+            .studentId(studentId)
+            .email(email)
+            .department(department)
+            .name(name)
+            .phoneNumber(phoneNumber)
+            .reason(reason)
+            .build();
+    }
+
+    public void updateReason(String reason) {
+        this.reason = reason;
+    }
 }

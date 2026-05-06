@@ -1,0 +1,12 @@
+services:
+  backend:
+    image: solutionest/solutio-server:${IMAGE_TAG:-latest}
+    container_name: ${BACKEND_CONTAINER_NAME}
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - solutio-network
+
+networks:
+  solutio-network:
+    external: true

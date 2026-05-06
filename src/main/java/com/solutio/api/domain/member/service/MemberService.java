@@ -2,7 +2,11 @@ package com.solutio.api.domain.member.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
 import com.solutio.api.domain.member.domain.Member;
+import com.solutio.api.domain.member.dto.request.MemberUpdateRequestDto;
+import com.solutio.api.domain.member.dto.response.MemberMyInfoResponseDto;
 import com.solutio.api.domain.member.repository.MemberRepository;
+import com.solutio.api.global.response.GeneralException;
+import com.solutio.api.global.response.Status;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -45,5 +49,20 @@ public class MemberService {
     public String getMyUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ((UserDetails)principal).getUsername();
+    }
+
+    public MemberMyInfoResponseDto getMyInfo() {
+        String studentId = getMyUserId();
+        Member member = memberRepository.findById(studentId)
+                .orElseThrow(() -> new GeneralException(Status.ACCOUNT_NOT_FOUND));
+        return MemberMyInfoResponseDto.from(member);
+    }
+
+    @Transactional
+    public void updateMyInfo(MemberUpdateRequestDto requestDto) {
+        String studentId = getMyUserId();
+        Member member = memberRepository.findById(studentId)
+                .orElseThrow(() -> new GeneralException(Status.ACCOUNT_NOT_FOUND));
+        member.updateMyInfo(requestDto);
     }
 }

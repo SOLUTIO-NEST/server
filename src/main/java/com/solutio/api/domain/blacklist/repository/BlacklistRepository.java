@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BlacklistRepository extends JpaRepository<Blacklist, Long> {
 
+    boolean existsByStudentId(String studentId);
 }
