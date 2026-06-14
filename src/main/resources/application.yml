@@ -54,10 +54,20 @@ jwt:
   secret_key: ${JWT_SECRET_KEY}
 
 security:
-  auth:
-    header: X-Solutio-Auth
   group-account:
     link: ${GROUP_ACCOUNT_LINK}
     number: ${GROUP_ACCOUNT_NUMBER}
     fee: ${GROUP_ACCOUNT_FEE}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
