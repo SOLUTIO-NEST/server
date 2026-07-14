@@ -33,6 +33,7 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE:0}
 
 management:
   endpoints:
@@ -59,15 +60,4 @@ security:
     number: ${GROUP_ACCOUNT_NUMBER}
     fee: ${GROUP_ACCOUNT_FEE}
 
----
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
 
