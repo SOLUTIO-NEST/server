@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: api
+  main:
+    web-application-type: servlet
+  docker:
+    compose:
+      enabled: false
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/solutio
+    username: solutio
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: password
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    defaults:
+      enabled: true
+server:
+  port: 8080
+
+
+jwt:
+  issuer: my-app
+  secret_key: udrleogkrryzjavbxjrhdgkrqnroqkfxlaaicstjqjdevtjqjtlzmfltzl
+
+security:
+  group-account:
+    link: example.com
+    number: 011-1111-11111
+    fee: 0
