@@ -27,11 +27,7 @@ public class ApplicantCreateUpdateRequestDto {
     private String email;
 
     @NotBlank(message = "비밀번호를 입력해야 합니다.")
-    @Size(min = 8, max = 12, message = "비밀번호는 8~12자여야 합니다.")
-    @Pattern(
-        regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,12}$",
-        message = "비밀번호는 영문, 숫자, 특수문자를 모두 포함해야 합니다."
-    )
+    @Size(min = 8, max = 16, message = "비밀번호는 8~16자여야 합니다.")
     private String password;
 
     @NotBlank(message = "소속 학과를 입력해야 합니다.")

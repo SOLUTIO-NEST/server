@@ -57,6 +57,7 @@ public class Member extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
     private ClassLevel classLevel;
 
     @Column(nullable = false)
