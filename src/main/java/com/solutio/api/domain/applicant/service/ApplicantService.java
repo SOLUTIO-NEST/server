@@ -1,6 +1,7 @@
 package com.solutio.api.domain.applicant.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
+import com.solutio.api.domain.applicant.domain.PassStatus;
 import com.solutio.api.domain.applicant.dto.request.ApplicantCreateUpdateRequestDto;
 import com.solutio.api.domain.applicant.dto.request.ApplicantUpdateClassLevelRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
@@ -64,7 +65,7 @@ public class ApplicantService {
 
     @Transactional
     public List<String> createMembersByRecruitment(Long recruitmentId) {
-        List<Applicant> applicants = applicantRepository.findByRecruitmentIdAndIsApprove(recruitmentId, true);
+        List<Applicant> applicants = applicantRepository.findByRecruitmentIdAndPassStatus(recruitmentId, PassStatus.APPROVED);
 
         return applicants.stream()
                 .map(this::createMemberFromApplicant)
@@ -76,7 +77,7 @@ public class ApplicantService {
         Applicant applicant = applicantRepository.findById(studentId)
                 .orElseThrow(() -> new GeneralException(Status.APPLICANT_NOT_FOUND));
 
-        if (!applicant.getIsApprove()) {
+        if (!applicant.isApproved()) {
             throw new GeneralException(Status.NOT_APPROVED_APPLICANT);
         }
 
@@ -84,6 +85,9 @@ public class ApplicantService {
     }
 
     private String createMemberFromApplicant(Applicant applicant) {
+        if (!applicant.isApproved()) {
+            throw new GeneralException(Status.NOT_APPROVED_APPLICANT);
+        }
         Member member = memberService.createMember(applicant);
         return member.getStudentId();
     }

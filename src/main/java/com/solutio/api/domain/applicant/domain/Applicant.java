@@ -62,8 +62,9 @@ public class Applicant extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     private ClassLevel classLevel;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Boolean isApprove;
+    private PassStatus passStatus;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -105,21 +106,25 @@ public class Applicant extends BaseEntity implements UserDetails {
                 bojId,
                 mainLanguage,
                 applyReason,
-                null,
-                false
+                ClassLevel.UNASSIGNED,
+                PassStatus.PENDING
         );
     }
 
     public void approve() {
-        this.isApprove = true;
+        this.passStatus = PassStatus.APPROVED;
     }
 
     public void reject() {
-        this.isApprove = false;
+        this.passStatus = PassStatus.REJECTED;
+    }
+
+    public boolean isApproved() {
+        return this.passStatus == PassStatus.APPROVED;
     }
 
     public void updateClassLevel(ApplicantUpdateClassLevelRequestDto requestDto) {
-        this.classLevel = requestDto.getClassLevel();
+        this.classLevel = requestDto.getClassLevel() == null ? ClassLevel.UNASSIGNED : requestDto.getClassLevel();
     }
 
     public void updateMyInfo(MemberUpdateRequestDto requestDto) {
