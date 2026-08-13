@@ -210,4 +210,20 @@ class ApplicantControllerIntegrationTest {
                 .bodyJson().extractingPath("$.data.passStatus").isEqualTo("APPROVED");
         result.bodyJson().extractingPath("$.data.classLevel").isEqualTo("미배정");
     }
+
+    @Test
+    @DisplayName("STAFF 권한으로 지원자 데이터 수동 파기를 요청하면 성공한다")
+    void purgeApplicantData_asStaff_purgesApplicantsSuccessfully() {
+        Recruitment recruitment = createRecruitment();
+        Applicant applicant = createApplicant(recruitment);
+        applicantRepository.save(applicant);
+
+        String staffToken = generateToken("STAFF001", "STAFF");
+
+        var result = assertThat(mvcTester.post().uri("/api/v1/applicants/purge/" + recruitment.getId())
+                .header("Authorization", "Bearer " + staffToken));
+
+        result.hasStatus2xxSuccessful();
+        assertThat(applicantRepository.findAllByRecruitmentId(recruitment.getId(), org.springframework.data.domain.Pageable.unpaged())).isEmpty();
+    }
 }

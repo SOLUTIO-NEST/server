@@ -27,12 +27,15 @@ import com.solutio.api.global.response.PageResponse;
 
 import java.util.List;
 
+import com.solutio.api.domain.applicant.service.ApplicantPurgeService;
+
 @RestController
 @RequestMapping("/api/v1/applicants")
 @RequiredArgsConstructor
 @Tag(name = "Applicant", description = "지원자")
 public class ApplicantController {
     private final ApplicantService applicantService;
+    private final ApplicantPurgeService applicantPurgeService;
 
     @Operation(summary = "[Anonymous] 동아리 지원", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @PostMapping("")
@@ -123,5 +126,15 @@ public class ApplicantController {
     ) {
         ApplicantDetailResponseDto response = applicantService.getApplicant(studentId);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
+    }
+
+    @Operation(summary = "[Staff] 모집 공고 지원자 데이터 수동 파기", description = "ROLE_STAFF 이상의 권한이 필요함")
+    @PreAuthorize("hasRole('STAFF')")
+    @PostMapping("/purge/{recruitmentId}")
+    public ApiResponse<Integer> purgeApplicantData(
+            @PathVariable(name = "recruitmentId") Long recruitmentId
+    ) {
+        int deletedCount = applicantPurgeService.purgeApplicantDataByRecruitmentId(recruitmentId);
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), deletedCount);
     }
 }
