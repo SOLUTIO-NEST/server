@@ -66,4 +66,30 @@ class ApplicantRepositoryTest {
 
         assertThat(rejectedList).isEmpty();
     }
+
+    @Test
+    @DisplayName("deleteAllByRecruitmentId는 해당 recruitment의 모든 지원자를 벌크 삭제한다")
+    void deleteAllByRecruitmentId_deletesAllApplicantsOfRecruitment() {
+        Recruitment recruitment = recruitmentRepository.save(Recruitment.create(
+                "삭제 대상 공고",
+                LocalDateTime.now().minusDays(10),
+                LocalDateTime.now().minusDays(5)
+        ));
+
+        Applicant applicant1 = Applicant.create(
+                "202600010", recruitment, "app10@kyonggi.ac.kr", "pass", "학과", "박지원",
+                "010-5555-6666", "boj10", MainLanguage.JAVA, "이유10", passwordEncoder
+        );
+        Applicant applicant2 = Applicant.create(
+                "202600011", recruitment, "app11@kyonggi.ac.kr", "pass", "학과", "최지원",
+                "010-7777-8888", "boj11", MainLanguage.C, "이유11", passwordEncoder
+        );
+        applicantRepository.save(applicant1);
+        applicantRepository.save(applicant2);
+
+        int deletedCount = applicantRepository.deleteAllByRecruitmentId(recruitment.getId());
+
+        assertThat(deletedCount).isEqualTo(2);
+        assertThat(applicantRepository.findAllByRecruitmentId(recruitment.getId(), org.springframework.data.domain.Pageable.unpaged())).isEmpty();
+    }
 }

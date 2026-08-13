@@ -1,0 +1,58 @@
+package com.solutio.api.domain.recruitment.repository;
+
+import com.solutio.api.domain.recruitment.domain.Recruitment;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@ActiveProfiles("test")
+@DataJpaTest
+class RecruitmentRepositoryTest {
+
+    @Autowired
+    private RecruitmentRepository recruitmentRepository;
+
+    @Test
+    @DisplayName("findAllEligibleForApplicantPurge는 6주 경과 및 미파기 상태인 모집 공고만 조회한다")
+    void findAllEligibleForApplicantPurge_returnsOnlyEligibleRecruitments() {
+        LocalDateTime baseTime = LocalDateTime.now().minusWeeks(6);
+
+        // 1. 6주 경과 & 미파기 대상 공고 (조회되어야 함)
+        Recruitment eligible = recruitmentRepository.save(Recruitment.create(
+                "6주 경과 공고",
+                LocalDateTime.now().minusWeeks(8),
+                LocalDateTime.now().minusWeeks(7),
+                LocalDateTime.now().minusWeeks(6).minusDays(1)
+        ));
+
+        // 2. 6주 미경과 공고 (조회 안 됨)
+        Recruitment notExpired = recruitmentRepository.save(Recruitment.create(
+                "최근 공고",
+                LocalDateTime.now().minusWeeks(3),
+                LocalDateTime.now().minusWeeks(2),
+                LocalDateTime.now().minusWeeks(1)
+        ));
+
+        // 3. 6주 경과했지만 이미 파기 처리된 공고 (조회 안 됨)
+        Recruitment alreadyPurged = Recruitment.create(
+                "이미 파기된 공고",
+                LocalDateTime.now().minusWeeks(8),
+                LocalDateTime.now().minusWeeks(7),
+                LocalDateTime.now().minusWeeks(7)
+        );
+        alreadyPurged.markApplicantDataPurged();
+        recruitmentRepository.save(alreadyPurged);
+
+        List<Recruitment> result = recruitmentRepository.findAllEligibleForApplicantPurge(baseTime);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(eligible.getId());
+    }
+}
