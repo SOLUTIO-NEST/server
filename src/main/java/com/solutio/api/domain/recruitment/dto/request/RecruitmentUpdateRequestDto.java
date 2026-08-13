@@ -1,8 +1,6 @@
 package com.solutio.api.domain.recruitment.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -18,6 +16,9 @@ public class RecruitmentUpdateRequestDto {
 
     @Schema(description = "모집 마감일", example = "2026-03-14T00:00:00")
     private LocalDateTime endDateTime;
+
+    @Schema(description = "최종 발표일", example = "2026-03-20T00:00:00")
+    private LocalDateTime announcementDateTime;
 
     @Schema(description = "합격 메시지", example = "축하드립니다!")
     private String passedMessage;

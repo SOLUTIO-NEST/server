@@ -36,7 +36,8 @@ public class RecruitmentService {
         Recruitment recruitment = Recruitment.create(
             requestDto.getTitle(),
             requestDto.getStartDateTime(),
-            requestDto.getEndDateTime()
+            requestDto.getEndDateTime(),
+            requestDto.getAnnouncementDateTime()
         );
 
         return recruitmentRepository.save(recruitment).getId();
