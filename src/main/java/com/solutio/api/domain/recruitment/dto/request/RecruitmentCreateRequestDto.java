@@ -16,4 +16,6 @@ public class RecruitmentCreateRequestDto {
 
     @NotNull(message = "종료 일시는 필수 값입니다.")
     private LocalDateTime endDateTime;
+
+    private LocalDateTime announcementDateTime;
 }

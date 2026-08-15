@@ -14,6 +14,8 @@ public class RecruitmentResponseDto {
     private String title;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
+    private LocalDateTime announcementDateTime;
+    private Boolean isApplicantDataPurged;
 
     public static RecruitmentResponseDto from(Recruitment recruitment) {
         return RecruitmentResponseDto.builder()
@@ -21,6 +23,8 @@ public class RecruitmentResponseDto {
             .title(recruitment.getTitle())
             .startDateTime(recruitment.getStartDateTime())
             .endDateTime(recruitment.getEndDateTime())
+            .announcementDateTime(recruitment.getAnnouncementDateTime())
+            .isApplicantDataPurged(recruitment.getIsApplicantDataPurged())
             .build();
     }
 }
