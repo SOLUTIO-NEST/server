@@ -10,15 +10,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RecruitmentTest {
 
     @Test
-    @DisplayName("announcementDateTime이 지정되지 않으면 endDateTime으로 기본 설정된다")
-    void create_withoutAnnouncementDateTime_defaultsToEndDateTime() {
+    @DisplayName("announcementDateTime이 지정되지 않으면 null로 설정된다")
+    void create_withoutAnnouncementDateTime_announcementDateTimeIsNull() {
         LocalDateTime start = LocalDateTime.now().minusDays(10);
         LocalDateTime end = LocalDateTime.now().minusDays(1);
 
         Recruitment recruitment = Recruitment.create("테스트 공고", start, end);
 
-        assertThat(recruitment.getAnnouncementDateTime()).isEqualTo(end);
+        assertThat(recruitment.getAnnouncementDateTime()).isNull();
         assertThat(recruitment.getIsApplicantDataPurged()).isFalse();
+    }
+
+    @Test
+    @DisplayName("announcementDateTime이 null인 경우 파기 대상이 아니다")
+    void isEligibleForApplicantPurge_announcementDateTimeIsNull_returnsFalse() {
+        LocalDateTime start = LocalDateTime.now().minusWeeks(8);
+        LocalDateTime end = LocalDateTime.now().minusWeeks(7);
+
+        Recruitment recruitment = Recruitment.create("테스트 공고", start, end);
+
+        assertThat(recruitment.isEligibleForApplicantPurge()).isFalse();
     }
 
     @Test

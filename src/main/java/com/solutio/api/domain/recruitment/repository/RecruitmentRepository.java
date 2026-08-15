@@ -15,6 +15,7 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
 
     @Query("SELECT r FROM Recruitment r " +
            "WHERE r.isApplicantDataPurged = false " +
-           "AND COALESCE(r.announcementDateTime, r.endDateTime) <= :baseDateTime")
+           "AND r.announcementDateTime IS NOT NULL " +
+           "AND r.announcementDateTime <= :baseDateTime")
     List<Recruitment> findAllEligibleForApplicantPurge(@Param("baseDateTime") LocalDateTime baseDateTime);
 }

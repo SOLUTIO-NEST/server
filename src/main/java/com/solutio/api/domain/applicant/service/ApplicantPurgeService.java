@@ -23,7 +23,7 @@ public class ApplicantPurgeService {
     private final ApplicantRepository applicantRepository;
 
     /**
-     * 최종 발표일(또는 종료일) 기준 6주가 경과한 모든 모집 공고의 지원자 데이터를 자동 파기합니다.
+     * 최종 발표일 기준 6주가 경과한 모든 모집 공고의 지원자 데이터를 자동 파기합니다.
      *
      * @return 파기 처리된 총 지원자 수
      */

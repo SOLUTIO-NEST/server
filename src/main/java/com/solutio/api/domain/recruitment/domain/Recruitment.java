@@ -71,7 +71,7 @@ public class Recruitment extends BaseEntity {
         this.title = title;
         this.startDateTime = startDateTime;
         this.endDateTime = endDateTime;
-        this.announcementDateTime = announcementDateTime != null ? announcementDateTime : endDateTime;
+        this.announcementDateTime = announcementDateTime;
         this.status = RecruitmentStatus.UPCOMING;
         this.isDeleted = false;
         this.isApplicantDataPurged = false;
@@ -111,8 +111,10 @@ public class Recruitment extends BaseEntity {
         if (Boolean.TRUE.equals(isApplicantDataPurged)) {
             return false;
         }
-        LocalDateTime baseTime = announcementDateTime != null ? announcementDateTime : endDateTime;
-        return LocalDateTime.now().isAfter(baseTime.plusWeeks(6));
+        if (announcementDateTime == null) {
+            return false;
+        }
+        return LocalDateTime.now().isAfter(announcementDateTime.plusWeeks(6));
     }
 
     public void markApplicantDataPurged() {

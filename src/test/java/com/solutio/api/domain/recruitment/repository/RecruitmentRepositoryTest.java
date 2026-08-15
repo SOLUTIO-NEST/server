@@ -50,6 +50,13 @@ class RecruitmentRepositoryTest {
         alreadyPurged.markApplicantDataPurged();
         recruitmentRepository.save(alreadyPurged);
 
+        // 4. 종료일은 6주가 지났으나 발표일이 미정(null)인 공고 (조회 안 됨)
+        Recruitment noAnnouncementDate = recruitmentRepository.save(Recruitment.create(
+                "발표일 미정 공고",
+                LocalDateTime.now().minusWeeks(8),
+                LocalDateTime.now().minusWeeks(7)
+        ));
+
         List<Recruitment> result = recruitmentRepository.findAllEligibleForApplicantPurge(baseTime);
 
         assertThat(result).hasSize(1);
