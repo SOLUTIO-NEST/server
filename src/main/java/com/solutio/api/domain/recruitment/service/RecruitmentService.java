@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -19,6 +21,10 @@ public class RecruitmentService {
     public Recruitment getRecruitment(Long recruitmentId) {
         return recruitmentRepository.findById(recruitmentId)
             .orElseThrow(() -> new GeneralException(Status.RECRUITMENT_NOT_FOUND));
+    }
+
+    public List<Recruitment> getAllRecruitments() {
+        return recruitmentRepository.findAllByOrderByStartDateTimeDesc();
     }
 
     public Recruitment getRecruitment() {

@@ -62,4 +62,34 @@ class RecruitmentRepositoryTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(eligible.getId());
     }
+
+    @Test
+    @DisplayName("findAllByOrderByStartDateTimeDesc는 시작일시 내림차순(최신순)으로 정렬하여 조회한다")
+    void findAllByOrderByStartDateTimeDesc_returnsRecruitmentsOrderedByStartDateTimeDesc() {
+        LocalDateTime now = LocalDateTime.now();
+
+        Recruitment firstRecruitment = recruitmentRepository.save(Recruitment.create(
+                "1기 모집",
+                now.minusMonths(6),
+                now.minusMonths(5)
+        ));
+
+        Recruitment thirdRecruitment = recruitmentRepository.save(Recruitment.create(
+                "3기 모집",
+                now.plusMonths(1),
+                now.plusMonths(2)
+        ));
+
+        Recruitment secondRecruitment = recruitmentRepository.save(Recruitment.create(
+                "2기 모집",
+                now.minusMonths(1),
+                now.plusDays(10)
+        ));
+
+        List<Recruitment> result = recruitmentRepository.findAllByOrderByStartDateTimeDesc();
+
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting(Recruitment::getTitle)
+                .containsExactly("3기 모집", "2기 모집", "1기 모집");
+    }
 }

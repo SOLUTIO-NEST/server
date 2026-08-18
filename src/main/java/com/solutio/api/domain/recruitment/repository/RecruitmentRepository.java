@@ -13,6 +13,8 @@ public interface RecruitmentRepository extends JpaRepository<Recruitment, Long> 
 
     Recruitment findFirstByIsDeleted(Boolean isDeleted);
 
+    List<Recruitment> findAllByOrderByStartDateTimeDesc();
+
     @Query("SELECT r FROM Recruitment r " +
            "WHERE r.isApplicantDataPurged = false " +
            "AND r.announcementDateTime IS NOT NULL " +
