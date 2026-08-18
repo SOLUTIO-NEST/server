@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/recruitments")
 @RequiredArgsConstructor
@@ -38,11 +40,22 @@ public class RecruitmentController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
     }
 
-    @Operation(summary = "[Anonymous] 모집 공고 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @Operation(summary = "[Anonymous] 모집 공고 목록 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @GetMapping("")
-    public ApiResponse<RecruitmentResponseDto> retrieveRecruitment(
+    public ApiResponse<List<RecruitmentResponseDto>> retrieveRecruitments(
     ) {
-        RecruitmentResponseDto response = RecruitmentResponseDto.from(recruitmentService.getRecruitment());
+        List<RecruitmentResponseDto> response = recruitmentService.getAllRecruitments().stream()
+            .map(RecruitmentResponseDto::from)
+            .toList();
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
+    }
+
+    @Operation(summary = "[Anonymous] 모집 공고 단건 상세 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @GetMapping("/{recruitmentId}")
+    public ApiResponse<RecruitmentResponseDto> retrieveRecruitment(
+        @PathVariable(name = "recruitmentId") Long recruitmentId
+    ) {
+        RecruitmentResponseDto response = RecruitmentResponseDto.from(recruitmentService.getRecruitment(recruitmentId));
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }
 
