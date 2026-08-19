@@ -1,5 +1,6 @@
 package com.solutio.api.domain.recruitment.domain;
 
+import com.solutio.api.domain.recruitment.dto.request.RecruitmentUpdateRequestDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -8,6 +9,35 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RecruitmentTest {
+
+    @Test
+    @DisplayName("공고 생성 시 기본 상태는 UPCOMING이다")
+    void create_defaultStatusIsUpcoming() {
+        LocalDateTime start = LocalDateTime.now().plusDays(1);
+        LocalDateTime end = LocalDateTime.now().plusDays(10);
+
+        Recruitment recruitment = Recruitment.create("테스트 공고", start, end);
+
+        assertThat(recruitment.getStatus()).isEqualTo(RecruitmentStatus.UPCOMING);
+    }
+
+    @Test
+    @DisplayName("update 호출 시 status를 포함한 필드들이 수정된다")
+    void update_withStatus_updatesCorrectly() {
+        LocalDateTime start = LocalDateTime.now().minusDays(1);
+        LocalDateTime end = LocalDateTime.now().plusDays(5);
+        Recruitment recruitment = Recruitment.create("테스트 공고", start, end);
+
+        RecruitmentUpdateRequestDto updateDto = RecruitmentUpdateRequestDto.builder()
+                .title("수정된 공고")
+                .status(RecruitmentStatus.OPEN)
+                .build();
+
+        recruitment.update(updateDto);
+
+        assertThat(recruitment.getTitle()).isEqualTo("수정된 공고");
+        assertThat(recruitment.getStatus()).isEqualTo(RecruitmentStatus.OPEN);
+    }
 
     @Test
     @DisplayName("announcementDateTime이 지정되지 않으면 null로 설정된다")

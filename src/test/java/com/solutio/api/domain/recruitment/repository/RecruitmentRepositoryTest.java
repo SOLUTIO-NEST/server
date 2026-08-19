@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -61,5 +64,22 @@ class RecruitmentRepositoryTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(eligible.getId());
+    }
+
+    @Test
+    @DisplayName("findAllByOrderByStartDateTimeDesc(Pageable)는 페이징된 결과를 시작일시 내림차순으로 조회한다")
+    void findAllByOrderByStartDateTimeDesc_withPageable_returnsPagedResult() {
+        LocalDateTime now = LocalDateTime.now();
+
+        recruitmentRepository.save(Recruitment.create("1기 모집", now.minusMonths(6), now.minusMonths(5)));
+        recruitmentRepository.save(Recruitment.create("3기 모집", now.plusMonths(1), now.plusMonths(2)));
+        recruitmentRepository.save(Recruitment.create("2기 모집", now.minusMonths(1), now.plusDays(10)));
+
+        Page<Recruitment> pageResult = recruitmentRepository.findAllByOrderByStartDateTimeDesc(PageRequest.of(0, 2));
+
+        assertThat(pageResult.getTotalElements()).isEqualTo(3);
+        assertThat(pageResult.getContent()).hasSize(2);
+        assertThat(pageResult.getContent()).extracting(Recruitment::getTitle)
+                .containsExactly("3기 모집", "2기 모집");
     }
 }

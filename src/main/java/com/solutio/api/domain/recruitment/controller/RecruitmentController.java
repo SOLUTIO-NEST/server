@@ -4,7 +4,9 @@ import com.solutio.api.domain.recruitment.dto.request.RecruitmentCreateRequestDt
 import com.solutio.api.domain.recruitment.dto.request.RecruitmentUpdateRequestDto;
 import com.solutio.api.domain.recruitment.dto.response.RecruitmentResponseDto;
 import com.solutio.api.domain.recruitment.service.RecruitmentService;
+import com.solutio.api.global.request.BasePageRequest;
 import com.solutio.api.global.response.ApiResponse;
+import com.solutio.api.global.response.PageResponse;
 import com.solutio.api.global.response.Status;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,7 +20,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/recruitments")
@@ -38,11 +43,23 @@ public class RecruitmentController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
     }
 
-    @Operation(summary = "[Anonymous] 모집 공고 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @Operation(summary = "[Anonymous] 모집 공고 목록 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @GetMapping("")
-    public ApiResponse<RecruitmentResponseDto> retrieveRecruitment(
+    public ApiResponse<PageResponse<RecruitmentResponseDto>> retrieveRecruitments(
+        @RequestParam(value = "page", defaultValue = "0") int page,
+        @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        RecruitmentResponseDto response = RecruitmentResponseDto.from(recruitmentService.getRecruitment());
+        BasePageRequest pageRequest = new BasePageRequest(page, size);
+        PageResponse<RecruitmentResponseDto> response = recruitmentService.getRecruitments(pageRequest.toPageable());
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
+    }
+
+    @Operation(summary = "[Anonymous] 모집 공고 단건 상세 조회", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
+    @GetMapping("/{recruitmentId}")
+    public ApiResponse<RecruitmentResponseDto> retrieveRecruitment(
+        @PathVariable(name = "recruitmentId") Long recruitmentId
+    ) {
+        RecruitmentResponseDto response = RecruitmentResponseDto.from(recruitmentService.getRecruitment(recruitmentId));
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), response);
     }
 

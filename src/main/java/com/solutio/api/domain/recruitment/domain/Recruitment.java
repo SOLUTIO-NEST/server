@@ -103,6 +103,7 @@ public class Recruitment extends BaseEntity {
         Optional.ofNullable(requestDto.getStartDateTime()).ifPresent(startDateTime -> this.startDateTime = startDateTime);
         Optional.ofNullable(requestDto.getEndDateTime()).ifPresent(endDateTime -> this.endDateTime = endDateTime);
         Optional.ofNullable(requestDto.getAnnouncementDateTime()).ifPresent(announcementDateTime -> this.announcementDateTime = announcementDateTime);
+        Optional.ofNullable(requestDto.getStatus()).ifPresent(status -> this.status = status);
         Optional.ofNullable(requestDto.getPassedMessage()).ifPresent(passedMessage -> this.passedMessage = passedMessage);
         validateDateRange();
     }
