@@ -4,8 +4,10 @@ import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.domain.recruitment.domain.RecruitmentStatus;
 import com.solutio.api.domain.recruitment.dto.request.RecruitmentCreateRequestDto;
 import com.solutio.api.domain.recruitment.dto.request.RecruitmentUpdateRequestDto;
+import com.solutio.api.domain.recruitment.dto.response.RecruitmentResponseDto;
 import com.solutio.api.domain.recruitment.repository.RecruitmentRepository;
 import com.solutio.api.global.response.GeneralException;
+import com.solutio.api.global.response.PageResponse;
 import com.solutio.api.global.response.Status;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -13,12 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,19 +41,20 @@ class RecruitmentServiceTest {
     private EntityManager em;
 
     @Test
-    @DisplayName("getAllRecruitments는 시작일시 기준 최신순으로 정렬된 모집 공고 목록을 반환한다")
-    void getAllRecruitments_returnsOrderedList() {
+    @DisplayName("getRecruitments는 시작일시 기준 최신순으로 정렬된 모집 공고 목록을 페이징하여 반환한다")
+    void getRecruitments_returnsOrderedPage() {
         LocalDateTime now = LocalDateTime.now();
 
         recruitmentRepository.save(Recruitment.create("1기", now.minusMonths(3), now.minusMonths(2)));
         recruitmentRepository.save(Recruitment.create("3기", now.plusMonths(1), now.plusMonths(2)));
         recruitmentRepository.save(Recruitment.create("2기", now.minusMonths(1), now.plusDays(5)));
 
-        List<Recruitment> results = recruitmentService.getAllRecruitments();
+        PageResponse<RecruitmentResponseDto> results = recruitmentService.getRecruitments(PageRequest.of(0, 2));
 
-        assertThat(results).hasSize(3);
-        assertThat(results).extracting(Recruitment::getTitle)
-                .containsExactly("3기", "2기", "1기");
+        assertThat(results.getTotalElements()).isEqualTo(3);
+        assertThat(results.getContents()).hasSize(2);
+        assertThat(results.getContents()).extracting(RecruitmentResponseDto::getTitle)
+                .containsExactly("3기", "2기");
     }
 
     @Test

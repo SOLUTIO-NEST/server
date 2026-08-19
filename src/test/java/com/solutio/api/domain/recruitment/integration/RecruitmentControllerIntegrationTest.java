@@ -63,14 +63,14 @@ class RecruitmentControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .hasStatus(HttpStatus.OK)
                 .bodyJson()
-                .extractingPath("$.data")
+                .extractingPath("$.data.contents")
                 .asArray()
                 .hasSize(3);
 
         assertThat(mvcTester.get().uri("/api/v1/recruitments")
                 .contentType(MediaType.APPLICATION_JSON))
                 .bodyJson()
-                .extractingPath("$.data[0].title")
+                .extractingPath("$.data.contents[0].title")
                 .isEqualTo("3기 공고");
     }
 

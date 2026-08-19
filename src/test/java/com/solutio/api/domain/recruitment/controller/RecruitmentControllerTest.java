@@ -5,14 +5,18 @@ import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.domain.recruitment.domain.RecruitmentStatus;
 import com.solutio.api.domain.recruitment.dto.request.RecruitmentCreateRequestDto;
 import com.solutio.api.domain.recruitment.dto.request.RecruitmentUpdateRequestDto;
+import com.solutio.api.domain.recruitment.dto.response.RecruitmentResponseDto;
 import com.solutio.api.domain.recruitment.service.RecruitmentService;
 import com.solutio.api.global.auth.jwt.TokenProvider;
 import com.solutio.api.global.config.SecurityConfig;
+import com.solutio.api.global.response.PageResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -56,13 +60,17 @@ class RecruitmentControllerTest {
         Recruitment recruitment2 = Recruitment.create("1기", now.minusMonths(2), now.minusMonths(1));
         ReflectionTestUtils.setField(recruitment2, "id", 2L);
 
-        given(recruitmentService.getAllRecruitments()).willReturn(List.of(recruitment1, recruitment2));
+        PageImpl<RecruitmentResponseDto> page = new PageImpl<>(List.of(
+                RecruitmentResponseDto.from(recruitment1),
+                RecruitmentResponseDto.from(recruitment2)
+        ));
+        given(recruitmentService.getRecruitments(any(Pageable.class))).willReturn(PageResponse.from(page));
 
         assertThat(mvcTester.get().uri("/api/v1/recruitments")
                 .contentType(MediaType.APPLICATION_JSON))
                 .hasStatus(HttpStatus.OK)
                 .bodyJson()
-                .extractingPath("$.data")
+                .extractingPath("$.data.contents")
                 .asArray()
                 .hasSize(2);
     }
