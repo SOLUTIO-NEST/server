@@ -134,12 +134,4 @@ public class Applicant extends BaseEntity implements UserDetails {
         this.bojId = requestDto.bojId();
         this.mainLanguage = requestDto.mainLanguage();
     }
-
-    public void updateMyInfo(MemberUpdateRequestDto requestDto) {
-        this.name = requestDto.name();
-        this.department = requestDto.department();
-        this.phoneNumber = requestDto.phoneNumber();
-        this.bojId = requestDto.bojId();
-        this.mainLanguage = requestDto.mainLanguage();
-    }
 }
