@@ -1,6 +1,7 @@
 package com.solutio.api.domain.applicant.dto.response;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
+import com.solutio.api.domain.applicant.domain.PassStatus;
 import com.solutio.api.domain.member.domain.MainLanguage;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +19,7 @@ public class ApplicantDetailResponseDto {
     private final String bojId;
     private final MainLanguage mainLanguage;
     private final String applyReason;
-    private final Boolean isApprove;
+    private final PassStatus passStatus;
     private final String classLevel;
     private final LocalDateTime createdAt;
 
@@ -32,8 +33,8 @@ public class ApplicantDetailResponseDto {
                 .bojId(applicant.getBojId())
                 .mainLanguage(applicant.getMainLanguage())
                 .applyReason(applicant.getApplyReason())
-                .isApprove(applicant.getIsApprove())
-                .classLevel(applicant.getClassLevel() == null ? null: applicant.getClassLevel().getDescription())
+                .passStatus(applicant.getPassStatus())
+                .classLevel(applicant.getClassLevel() == null ? null : applicant.getClassLevel().getDescription())
                 .createdAt(applicant.getCreatedAt())
                 .build();
     }

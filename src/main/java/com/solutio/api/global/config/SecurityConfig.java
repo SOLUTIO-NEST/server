@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -35,12 +36,12 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/api/v1/login",
-            "/test/**",
             "/actuator/health"
     };
 
     private static final String[] ALLOWED_ALL_API_ENDPOINTS_GET = {
         "/api/v1/recruitments",
+        "/api/v1/recruitments/**",
     };
 
     private static final String[] ALLOWED_ALL_API_ENDPOINTS_POST = {
@@ -56,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,ALLOWED_ALL_API_ENDPOINTS_GET).permitAll()
                         .requestMatchers(HttpMethod.POST,ALLOWED_ALL_API_ENDPOINTS_POST).permitAll()
                         .anyRequest().authenticated())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable);
         return http.build();

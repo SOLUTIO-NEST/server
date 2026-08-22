@@ -46,26 +46,35 @@ public class Recruitment extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime endDateTime;
 
+    @Column(name = "announcement_date_time")
+    private LocalDateTime announcementDateTime;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private RecruitmentStatus status;
 
-    @Size(max=1024)
+    @Size(max = 1024)
     private String passedMessage;
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
+    @Column(name = "is_applicant_data_purged", nullable = false)
+    private Boolean isApplicantDataPurged;
+
     private Recruitment(
         String title,
         LocalDateTime startDateTime,
-        LocalDateTime endDateTime
+        LocalDateTime endDateTime,
+        LocalDateTime announcementDateTime
     ) {
         this.title = title;
         this.startDateTime = startDateTime;
         this.endDateTime = endDateTime;
+        this.announcementDateTime = announcementDateTime;
         this.status = RecruitmentStatus.UPCOMING;
         this.isDeleted = false;
+        this.isApplicantDataPurged = false;
     }
 
     public static Recruitment create(
@@ -73,7 +82,16 @@ public class Recruitment extends BaseEntity {
         LocalDateTime startDateTime,
         LocalDateTime endDateTime
     ) {
-        Recruitment recruitment = new Recruitment(title, startDateTime, endDateTime);
+        return create(title, startDateTime, endDateTime, null);
+    }
+
+    public static Recruitment create(
+        String title,
+        LocalDateTime startDateTime,
+        LocalDateTime endDateTime,
+        LocalDateTime announcementDateTime
+    ) {
+        Recruitment recruitment = new Recruitment(title, startDateTime, endDateTime, announcementDateTime);
 
         recruitment.validateDateRange();
 
@@ -84,8 +102,24 @@ public class Recruitment extends BaseEntity {
         Optional.ofNullable(requestDto.getTitle()).ifPresent(title -> this.title = title);
         Optional.ofNullable(requestDto.getStartDateTime()).ifPresent(startDateTime -> this.startDateTime = startDateTime);
         Optional.ofNullable(requestDto.getEndDateTime()).ifPresent(endDateTime -> this.endDateTime = endDateTime);
+        Optional.ofNullable(requestDto.getAnnouncementDateTime()).ifPresent(announcementDateTime -> this.announcementDateTime = announcementDateTime);
+        Optional.ofNullable(requestDto.getStatus()).ifPresent(status -> this.status = status);
         Optional.ofNullable(requestDto.getPassedMessage()).ifPresent(passedMessage -> this.passedMessage = passedMessage);
         validateDateRange();
+    }
+
+    public boolean isEligibleForApplicantPurge() {
+        if (Boolean.TRUE.equals(isApplicantDataPurged)) {
+            return false;
+        }
+        if (announcementDateTime == null) {
+            return false;
+        }
+        return LocalDateTime.now().isAfter(announcementDateTime.plusWeeks(6));
+    }
+
+    public void markApplicantDataPurged() {
+        this.isApplicantDataPurged = true;
     }
 
     public void validateRecruiting() {

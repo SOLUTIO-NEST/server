@@ -1,6 +1,7 @@
 package com.solutio.api.domain.recruitment.dto.response;
 
 import com.solutio.api.domain.recruitment.domain.Recruitment;
+import com.solutio.api.domain.recruitment.domain.RecruitmentStatus;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,6 +15,9 @@ public class RecruitmentResponseDto {
     private String title;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
+    private LocalDateTime announcementDateTime;
+    private RecruitmentStatus status;
+    private Boolean isApplicantDataPurged;
 
     public static RecruitmentResponseDto from(Recruitment recruitment) {
         return RecruitmentResponseDto.builder()
@@ -21,6 +25,9 @@ public class RecruitmentResponseDto {
             .title(recruitment.getTitle())
             .startDateTime(recruitment.getStartDateTime())
             .endDateTime(recruitment.getEndDateTime())
+            .announcementDateTime(recruitment.getAnnouncementDateTime())
+            .status(recruitment.getStatus())
+            .isApplicantDataPurged(recruitment.getIsApplicantDataPurged())
             .build();
     }
 }
