@@ -18,8 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -47,21 +45,24 @@ public class LoginService {
     }
 
     private TokenInfo generateAndSaveToken(Member member) {
-        String refreshToken = tokenProvider.generateToken(member.getStudentId(), Duration.ofDays(1), member.getRole().name());
-        String accessToken = tokenProvider.generateToken(member.getStudentId(), Duration.ofHours(1), member.getRole().name());
+        String refreshToken = tokenProvider.generateRefreshToken(member.getStudentId(), member.getRole().name());
+        String accessToken = tokenProvider.generateAccessToken(member.getStudentId(), member.getRole().name());
         refreshTokenRepository.save(RefreshToken.of(member.getStudentId(), refreshToken));
         return TokenInfo.create(accessToken, refreshToken);
     }
 
     private TokenInfo generateAndSaveToken(Applicant applicant) {
-        String refreshToken = tokenProvider.generateToken(applicant.getStudentId(), Duration.ofDays(1), Role.GUEST.name());
-        String accessToken = tokenProvider.generateToken(applicant.getStudentId(), Duration.ofHours(1), Role.GUEST.name());
+        String refreshToken = tokenProvider.generateRefreshToken(applicant.getStudentId(), Role.GUEST.name());
+        String accessToken = tokenProvider.generateAccessToken(applicant.getStudentId(), Role.GUEST.name());
         refreshTokenRepository.save(RefreshToken.of(applicant.getStudentId(), refreshToken));
         return TokenInfo.create(accessToken, refreshToken);
     }
 
     public TokenInfo reissueToken(HttpServletRequest request) {
         String refreshToken = tokenProvider.resolveToken(request);
+        if (refreshToken == null || !tokenProvider.validateToken(refreshToken) || !tokenProvider.isRefreshToken(refreshToken)) {
+            throw new GeneralException(Status.TOKEN_NOT_FOUND);
+        }
         RefreshToken refreshTokenEntity = refreshTokenRepository.findByRefreshToken(refreshToken)
             .orElseThrow(() -> new GeneralException(Status.TOKEN_NOT_FOUND));
 

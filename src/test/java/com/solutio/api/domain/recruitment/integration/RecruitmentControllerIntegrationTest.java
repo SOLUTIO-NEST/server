@@ -47,7 +47,7 @@ class RecruitmentControllerIntegrationTest {
     ObjectMapper objectMapper;
 
     private String generateToken(String studentId, String role) {
-        return tokenProvider.generateToken(studentId, Duration.ofHours(1), role);
+        return tokenProvider.generateAccessToken(studentId, Duration.ofHours(1), role);
     }
 
     @Test
