@@ -54,6 +54,8 @@ server:
 jwt:
   issuer: my-app
   secret_key: udrleogkrryzjavbxjrhdgkrqnroqkfxlaaicstjqjdevtjqjtlzmfltzl
+  access-token-expiration: 1h
+  refresh-token-expiration: 24h
 
 security:
   group-account:
