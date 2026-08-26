@@ -28,17 +28,28 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.solutio.api.domain.applicant.domain.Applicant;
+import com.solutio.api.domain.applicant.repository.ApplicantRepository;
+import com.solutio.api.domain.login.repository.RefreshTokenRepository;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 @ActiveProfiles("test")
 @DataJpaTest
 @Import({MemberService.class, BCryptPasswordEncoder.class})
 @Transactional
 class MemberServiceTest {
 
+    @MockitoBean
+    private RefreshTokenRepository refreshTokenRepository;
+
     @Autowired
     private MemberService memberService;
 
     @Autowired
     private MemberRepository memberRepository;
+
+    @Autowired
+    private ApplicantRepository applicantRepository;
 
     @Autowired
     private EntityManager em;
@@ -122,5 +133,57 @@ class MemberServiceTest {
 
         assertThatThrownBy(() -> memberService.updateMyInfo(new MemberUpdateRequestDto("이름", null, null, null, null)))
                 .isInstanceOf(GeneralException.class);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 시 Member가 soft delete되고 existsWithdrawnByStudentId가 true를 반환한다")
+    void withdraw_softDeletesMember_andDeletesApplicant() {
+        createMember();
+        givenAuthentication(STUDENT_ID, "ROLE_USER");
+
+        memberService.withdraw();
+
+        em.flush();
+        em.clear();
+
+        assertThat(memberRepository.findById(STUDENT_ID)).isEmpty();
+        assertThat(memberRepository.existsWithdrawnByStudentId(STUDENT_ID)).isTrue();
+    }
+
+    @Test
+    @DisplayName("탈퇴한 회원이 재지원하여 합격 후 createMember 호출 시 기존 레코드가 재활성화된다")
+    void createMember_reactivatesWithdrawnMember() {
+        createMember();
+        givenAuthentication(STUDENT_ID, "ROLE_USER");
+        memberService.withdraw();
+
+        em.flush();
+        em.clear();
+
+        Applicant reApplicant = Applicant.create(
+                STUDENT_ID,
+                null,
+                "new_email@kyonggi.ac.kr",
+                "new_password",
+                "소프트웨어경영학과",
+                "홍길동_재가입",
+                "010-9999-0000",
+                "new_boj",
+                MainLanguage.PYTHON,
+                "재지원",
+                new BCryptPasswordEncoder()
+        );
+
+        Member reactivated = memberService.createMember(reApplicant);
+
+        em.flush();
+        em.clear();
+
+        assertThat(reactivated.getStudentId()).isEqualTo(STUDENT_ID);
+        Member found = memberRepository.findById(STUDENT_ID).orElseThrow();
+        assertThat(found.getName()).isEqualTo("홍길동_재가입");
+        assertThat(found.getDepartment()).isEqualTo("소프트웨어경영학과");
+        assertThat(found.getMainLanguage()).isEqualTo(MainLanguage.PYTHON);
+        assertThat(found.getRole()).isEqualTo(Role.USER);
     }
 }

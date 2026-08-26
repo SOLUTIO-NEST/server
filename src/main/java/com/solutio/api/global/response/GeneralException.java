@@ -1,7 +1,9 @@
 package com.solutio.api.global.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor
 public class GeneralException extends RuntimeException {
 

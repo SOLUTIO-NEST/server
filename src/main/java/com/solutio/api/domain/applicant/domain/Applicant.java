@@ -6,8 +6,6 @@ import com.solutio.api.domain.member.domain.MainLanguage;
 import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.domain.member.dto.request.MemberUpdateRequestDto;
 import com.solutio.api.global.domain.BaseEntity;
-import com.solutio.api.global.response.GeneralException;
-import com.solutio.api.global.response.Status;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
@@ -76,10 +74,11 @@ public class Applicant extends BaseEntity implements UserDetails {
         return studentId;
     }
 
-    public void isPasswordMatching(String rawPassword, PasswordEncoder passwordEncoder) {
-        if (!passwordEncoder.matches(rawPassword, this.password)) {
-            throw new GeneralException(Status.INVALID_PASSWORD);
+    public boolean isLoginPeriodExpired() {
+        if (this.recruitment == null) {
+            return true;
         }
+        return this.recruitment.isResultInquiryPeriodExpired();
     }
 
     public static Applicant create(

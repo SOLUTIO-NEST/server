@@ -142,6 +142,12 @@ public class Recruitment extends BaseEntity {
         this.isDeleted=true;
     }
 
+    public boolean isResultInquiryPeriodExpired() {
+        LocalDate today = LocalDate.now();
+        LocalDate endDateLocal = this.endDateTime.toLocalDate();
+        return endDateLocal.isBefore(today.minusDays(14));
+    }
+
     public void validateEndDateWithin14Days() {
         LocalDate today = LocalDate.now();
         LocalDate endDateLocal = this.endDateTime.toLocalDate();

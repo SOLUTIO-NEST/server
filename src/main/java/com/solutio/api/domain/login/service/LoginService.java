@@ -2,6 +2,7 @@ package com.solutio.api.domain.login.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
 import com.solutio.api.domain.applicant.service.ApplicantService;
+import com.solutio.api.domain.blacklist.repository.BlacklistRepository;
 import com.solutio.api.domain.login.domain.RefreshToken;
 import com.solutio.api.domain.login.dto.request.LoginRequestDto;
 import com.solutio.api.domain.login.dto.response.TokenInfo;
@@ -22,26 +23,48 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class LoginService {
+
+    public static final String DUMMY_PASSWORD_HASH = "$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG";
+
     private final MemberService memberService;
+    private final BlacklistRepository blacklistRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final ApplicantService applicantService;
 
+    @Transactional
     public TokenInfo login(LoginRequestDto request) {
         String userId = request.getId();
         String password = request.getPassword();
+
+        if (blacklistRepository.existsByStudentId(userId)) {
+            passwordEncoder.matches(password, DUMMY_PASSWORD_HASH);
+            throw new GeneralException(Status.INVALID_CREDENTIALS);
+        }
+
         Member member = memberService.getUserById(userId);
         if (member != null) {
-            member.isPasswordMatching(password, passwordEncoder);
+            if (!passwordEncoder.matches(password, member.getPassword())) {
+                throw new GeneralException(Status.INVALID_CREDENTIALS);
+            }
             return generateAndSaveToken(member);
         }
+
         Applicant applicant = applicantService.getApplicantById(userId);
         if (applicant != null) {
-            applicant.isPasswordMatching(password, passwordEncoder);
+            if (applicant.isLoginPeriodExpired()) {
+                passwordEncoder.matches(password, DUMMY_PASSWORD_HASH);
+                throw new GeneralException(Status.INVALID_CREDENTIALS);
+            }
+            if (!passwordEncoder.matches(password, applicant.getPassword())) {
+                throw new GeneralException(Status.INVALID_CREDENTIALS);
+            }
             return generateAndSaveToken(applicant);
         }
-        throw new GeneralException(Status.ACCOUNT_NOT_FOUND);
+
+        passwordEncoder.matches(password, DUMMY_PASSWORD_HASH);
+        throw new GeneralException(Status.INVALID_CREDENTIALS);
     }
 
     private TokenInfo generateAndSaveToken(Member member) {
@@ -58,6 +81,7 @@ public class LoginService {
         return TokenInfo.create(accessToken, refreshToken);
     }
 
+    @Transactional
     public TokenInfo reissueToken(HttpServletRequest request) {
         String refreshToken = tokenProvider.resolveToken(request);
         if (refreshToken == null || !tokenProvider.validateToken(refreshToken) || !tokenProvider.isRefreshToken(refreshToken)) {
@@ -66,15 +90,30 @@ public class LoginService {
         RefreshToken refreshTokenEntity = refreshTokenRepository.findByRefreshToken(refreshToken)
             .orElseThrow(() -> new GeneralException(Status.TOKEN_NOT_FOUND));
 
-        refreshTokenRepository.delete(refreshTokenEntity);
-
         String userId = refreshTokenEntity.getUserId();
+
+        if (blacklistRepository.existsByStudentId(userId)) {
+            refreshTokenRepository.delete(refreshTokenEntity);
+            throw new GeneralException(Status.INVALID_CREDENTIALS);
+        }
+
         Member member = memberService.getUserById(userId);
         if (member != null) {
+            refreshTokenRepository.delete(refreshTokenEntity);
             return generateAndSaveToken(member);
         }
 
         Applicant applicant = applicantService.getApplicantById(userId);
-        return generateAndSaveToken(applicant);
+        if (applicant != null) {
+            if (applicant.isLoginPeriodExpired()) {
+                refreshTokenRepository.delete(refreshTokenEntity);
+                throw new GeneralException(Status.INVALID_CREDENTIALS);
+            }
+            refreshTokenRepository.delete(refreshTokenEntity);
+            return generateAndSaveToken(applicant);
+        }
+
+        refreshTokenRepository.delete(refreshTokenEntity);
+        throw new GeneralException(Status.INVALID_CREDENTIALS);
     }
 }
