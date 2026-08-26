@@ -33,9 +33,8 @@ public class LoginController {
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), tokenInfo);
     }
 
-    @Operation(summary = "[Guest] 토큰 재발급", description = "ROLE_GUEST 이상의 권한이 필요함")
+    @Operation(summary = "토큰 재발급", description = "Refresh Token을 통한 Access/Refresh Token 재발급")
     @PostMapping("/reissue")
-    @PreAuthorize("hasRole('GUEST')")
     public ApiResponse<TokenInfo> reissueToken(
         HttpServletRequest request
     ) {
