@@ -36,11 +36,17 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.solutio.api.domain.login.repository.RefreshTokenRepository;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 @ActiveProfiles("test")
 @DataJpaTest
 @Import({ApplicantService.class, MemberService.class, RecruitmentService.class, BCryptPasswordEncoder.class})
 @Transactional
 class ApplicantServiceTest {
+
+    @MockitoBean
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     private ApplicantService applicantService;

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,6 +36,14 @@ public class MemberController {
     @PatchMapping("/me")
     public ApiResponse<Void> updateMyInfo(@RequestBody @Valid MemberUpdateRequestDto requestDto) {
         memberService.updateMyInfo(requestDto);
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), null);
+    }
+
+    @Operation(summary = "[User] 회원 탈퇴", description = "ROLE_USER 이상의 권한이 필요함")
+    @PreAuthorize("hasRole('USER')")
+    @DeleteMapping("/me")
+    public ApiResponse<Void> withdraw() {
+        memberService.withdraw();
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), null);
     }
 }

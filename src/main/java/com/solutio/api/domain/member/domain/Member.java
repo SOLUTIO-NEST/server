@@ -2,8 +2,6 @@ package com.solutio.api.domain.member.domain;
 
 import com.solutio.api.domain.member.dto.request.MemberUpdateRequestDto;
 import com.solutio.api.global.domain.BaseEntity;
-import com.solutio.api.global.response.GeneralException;
-import com.solutio.api.global.response.Status;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -15,7 +13,6 @@ import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -97,10 +94,30 @@ public class Member extends BaseEntity implements UserDetails {
         this.mainLanguage = requestDto.mainLanguage();
     }
 
-    public void isPasswordMatching(String rawPassword, PasswordEncoder passwordEncoder) {
-        if (!passwordEncoder.matches(rawPassword, this.password)) {
-            throw new GeneralException(Status.INVALID_PASSWORD);
-        }
+    public void delete() {
+        this.isDeleted = true;
+    }
+
+    public void reactivate(
+            String email,
+            String password,
+            String department,
+            String name,
+            String phoneNumber,
+            String bojId,
+            MainLanguage mainLanguage,
+            ClassLevel classLevel
+    ) {
+        this.email = email;
+        this.password = password;
+        this.department = department;
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.bojId = bojId;
+        this.mainLanguage = mainLanguage;
+        this.role = Role.USER;
+        this.classLevel = classLevel;
+        this.isDeleted = false;
     }
 
     @Override

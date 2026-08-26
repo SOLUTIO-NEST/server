@@ -131,4 +131,24 @@ class MemberControllerTest {
                 .content("{\"name\": \"   \"}"))
                 .hasStatus(HttpStatus.BAD_REQUEST);
     }
+
+    @Test
+    @DisplayName("ROLE_USER 사용자는 회원 탈퇴를 요청할 수 있다")
+    @WithMockUser(roles = "USER")
+    void withdraw_asUser_returns200() {
+        willDoNothing().given(memberService).withdraw();
+
+        assertThat(mvcTester.delete().uri("/api/v1/members/me")
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatus2xxSuccessful();
+    }
+
+    @Test
+    @DisplayName("ROLE_GUEST 사용자는 회원 탈퇴를 요청할 수 없다")
+    @WithMockUser(roles = "GUEST")
+    void withdraw_asGuest_returns401() {
+        assertThat(mvcTester.delete().uri("/api/v1/members/me")
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatus(HttpStatus.UNAUTHORIZED);
+    }
 }
