@@ -17,6 +17,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -52,6 +53,7 @@ public class TokenProvider {
             .header()
             .type("JWT")
             .and()
+            .id(UUID.randomUUID().toString())
             .issuer(jwtProperties.getIssuer())
             .issuedAt(now)
             .expiration(expiry)
@@ -138,6 +140,21 @@ public class TokenProvider {
 
     public boolean isRefreshToken(String token) {
         return TokenCategory.REFRESH.equals(getCategory(token));
+    }
+
+    public String getJti(String token) {
+        Claims claims = getClaims(token);
+        return claims.getId();
+    }
+
+    public Duration getRemainingExpiration(String token) {
+        Claims claims = getClaims(token);
+        Date expiration = claims.getExpiration();
+        if (expiration == null) {
+            return Duration.ZERO;
+        }
+        long diff = expiration.getTime() - System.currentTimeMillis();
+        return diff > 0 ? Duration.ofMillis(diff) : Duration.ZERO;
     }
 
     private Claims getClaims(String token) {

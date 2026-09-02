@@ -2,11 +2,15 @@ package com.solutio.api.global.auth.filter;
 
 import com.solutio.api.global.auth.jwt.JwtProperties;
 import com.solutio.api.global.auth.jwt.TokenProvider;
+import com.solutio.api.global.auth.service.TokenRevocationService;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -15,11 +19,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 
+@ExtendWith(MockitoExtension.class)
 class TokenAuthenticationFilterTest {
 
     private TokenProvider tokenProvider;
     private TokenAuthenticationFilter tokenAuthenticationFilter;
+
+    @Mock
+    private TokenRevocationService tokenRevocationService;
+
     private static final String SECRET_KEY = "c29sdXRpby1zZWNyZXQta2V5LXNvbHV0aW8tc2VjcmV0LWtleS1zb2x1dGlvLXNlY3JldC1rZXk=";
 
     @BeforeEach
@@ -28,7 +39,7 @@ class TokenAuthenticationFilterTest {
         jwtProperties.setIssuer("solutio-test");
         jwtProperties.setSecretKey(SECRET_KEY);
         tokenProvider = new TokenProvider(jwtProperties);
-        tokenAuthenticationFilter = new TokenAuthenticationFilter(tokenProvider);
+        tokenAuthenticationFilter = new TokenAuthenticationFilter(tokenProvider, tokenRevocationService);
         SecurityContextHolder.clearContext();
     }
 
@@ -41,6 +52,40 @@ class TokenAuthenticationFilterTest {
     @DisplayName("유효한 Access Token으로 요청 시 SecurityContext에 인증 정보가 설정된다")
     void doFilter_withValidAccessToken_setsAuthentication() throws ServletException, IOException {
         String accessToken = tokenProvider.generateAccessToken("202612345", "USER");
+        given(tokenRevocationService.isRevoked(anyString())).willReturn(false);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + accessToken);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain filterChain = new MockFilterChain();
+
+        tokenAuthenticationFilter.doFilter(request, response, filterChain);
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+        assertThat(SecurityContextHolder.getContext().getAuthentication().getName()).isEqualTo("202612345");
+    }
+
+    @Test
+    @DisplayName("폐기(revoke)된 Access Token으로 요청 시 SecurityContext에 인증 정보가 설정되지 않는다")
+    void doFilter_withRevokedAccessToken_doesNotSetAuthentication() throws ServletException, IOException {
+        String accessToken = tokenProvider.generateAccessToken("202612345", "USER");
+        given(tokenRevocationService.isRevoked(anyString())).willReturn(true);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + accessToken);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain filterChain = new MockFilterChain();
+
+        tokenAuthenticationFilter.doFilter(request, response, filterChain);
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
+
+    @Test
+    @DisplayName("Redis 장애로 예외 발생 시 Fail-Open 정책에 따라 인증 정보가 정상 설정된다")
+    void doFilter_withRedisFailure_proceedsWithFailOpen() throws ServletException, IOException {
+        String accessToken = tokenProvider.generateAccessToken("202612345", "USER");
+        given(tokenRevocationService.isRevoked(anyString())).willThrow(new RuntimeException("Redis connection error"));
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer " + accessToken);

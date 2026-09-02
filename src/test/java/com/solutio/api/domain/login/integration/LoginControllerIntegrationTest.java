@@ -19,6 +19,7 @@ import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.domain.recruitment.domain.RecruitmentStatus;
 import com.solutio.api.domain.recruitment.repository.RecruitmentRepository;
 import com.solutio.api.global.auth.jwt.TokenProvider;
+import com.solutio.api.global.auth.service.TokenRevocationService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +42,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,6 +78,9 @@ class LoginControllerIntegrationTest {
     @MockitoBean
     private RefreshTokenRepository refreshTokenRepository;
 
+    @MockitoBean
+    private TokenRevocationService tokenRevocationService;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -93,10 +98,26 @@ class LoginControllerIntegrationTest {
     private static final String RAW_PASSWORD = "Password123!";
 
     private final Map<String, RefreshToken> tokenStore = new ConcurrentHashMap<>();
+    private final Set<String> revokedJtis = ConcurrentHashMap.newKeySet();
 
     @BeforeEach
     void setUp() {
         tokenStore.clear();
+        revokedJtis.clear();
+
+        willAnswer(invocation -> {
+            String jti = invocation.getArgument(0);
+            if (jti != null) {
+                revokedJtis.add(jti);
+            }
+            return null;
+        }).given(tokenRevocationService).revoke(anyString(), any());
+
+        given(tokenRevocationService.isRevoked(anyString())).willAnswer(invocation -> {
+            String jti = invocation.getArgument(0);
+            return revokedJtis.contains(jti);
+        });
+
         given(refreshTokenRepository.save(any(RefreshToken.class))).willAnswer(invocation -> {
             RefreshToken token = invocation.getArgument(0);
             tokenStore.put(token.getUserId(), token);
@@ -437,5 +458,63 @@ class LoginControllerIntegrationTest {
                 .bodyJson().extractingPath("$.status").isEqualTo("AUTH401");
 
         assertThat(refreshTokenRepository.findByRefreshToken(refreshTokenStr)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("정상 로그아웃 성공 - 200 OK 반환 및 RefreshToken 삭제, Access Token 블랙리스트 등록")
+    void logout_success() {
+        createMember(MEMBER_STUDENT_ID, RAW_PASSWORD);
+        String accessToken = tokenProvider.generateAccessToken(MEMBER_STUDENT_ID, Role.USER.name());
+        String refreshToken = tokenProvider.generateRefreshToken(MEMBER_STUDENT_ID, Role.USER.name());
+        refreshTokenRepository.save(RefreshToken.of(MEMBER_STUDENT_ID, refreshToken));
+
+        var result = assertThat(mvcTester.post().uri("/api/v1/login/logout")
+                .header("Authorization", "Bearer " + accessToken)
+                .accept(MediaType.APPLICATION_JSON));
+
+        result.hasStatusOk();
+        assertThat(tokenStore.containsKey(MEMBER_STUDENT_ID)).isFalse();
+        String jti = tokenProvider.getJti(accessToken);
+        assertThat(tokenRevocationService.isRevoked(jti)).isTrue();
+    }
+
+    @Test
+    @DisplayName("로그아웃된 Access Token으로 보호된 엔드포인트 요청 시 403 FORBIDDEN 차단")
+    void logout_blacklistedToken_cannotAccessProtectedEndpoint() {
+        createMember(MEMBER_STUDENT_ID, RAW_PASSWORD);
+        String accessToken = tokenProvider.generateAccessToken(MEMBER_STUDENT_ID, Role.USER.name());
+
+        // 1. 로그아웃 전에는 정상 접근 가능
+        assertThat(mvcTester.get().uri("/api/v1/members/me")
+                .header("Authorization", "Bearer " + accessToken)
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatusOk();
+
+        // 2. 로그아웃 수행
+        assertThat(mvcTester.post().uri("/api/v1/login/logout")
+                .header("Authorization", "Bearer " + accessToken)
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatusOk();
+
+        // 3. 로그아웃 후 동일한 토큰으로 요청 시 403 FORBIDDEN 차단
+        assertThat(mvcTester.get().uri("/api/v1/members/me")
+                .header("Authorization", "Bearer " + accessToken)
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatus(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("토큰 없이 또는 잘못된 토큰으로 로그아웃 요청 시에도 멱등하게 200 OK 반환")
+    void logout_idempotent_returnsOk() {
+        // Authorization 헤더 없는 경우
+        assertThat(mvcTester.post().uri("/api/v1/login/logout")
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatusOk();
+
+        // 잘못된 토큰 형식인 경우
+        assertThat(mvcTester.post().uri("/api/v1/login/logout")
+                .header("Authorization", "Bearer invalid.jwt.token")
+                .accept(MediaType.APPLICATION_JSON))
+                .hasStatusOk();
     }
 }

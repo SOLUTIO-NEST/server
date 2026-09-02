@@ -101,4 +101,25 @@ class TokenProviderTest {
         assertThat(nullRole).extracting(GrantedAuthority::getAuthority).containsExactly("ROLE_GUEST");
         assertThat(unknownRole).extracting(GrantedAuthority::getAuthority).containsExactly("ROLE_GUEST");
     }
+
+    @Test
+    @DisplayName("토큰 생성 시 jti 클레임이 생성되며 getJti로 추출할 수 있다")
+    void getJti_returnsNonNullUuid() {
+        String token = tokenProvider.generateAccessToken("202612345", "USER");
+
+        String jti = tokenProvider.getJti(token);
+
+        assertThat(jti).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    @DisplayName("getRemainingExpiration은 토큰의 잔여 유효 시간을 반환한다")
+    void getRemainingExpiration_returnsPositiveDuration() {
+        String token = tokenProvider.generateAccessToken("202612345", Duration.ofMinutes(10), "USER");
+
+        Duration remaining = tokenProvider.getRemainingExpiration(token);
+
+        assertThat(remaining.toMillis()).isGreaterThan(0);
+        assertThat(remaining.toMinutes()).isLessThanOrEqualTo(10);
+    }
 }

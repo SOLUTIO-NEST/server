@@ -11,6 +11,7 @@ import com.solutio.api.domain.member.domain.Member;
 import com.solutio.api.domain.member.domain.Role;
 import com.solutio.api.domain.member.service.MemberService;
 import com.solutio.api.global.auth.jwt.TokenProvider;
+import com.solutio.api.global.auth.service.TokenRevocationService;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +35,7 @@ public class LoginService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final ApplicantService applicantService;
+    private final TokenRevocationService tokenRevocationService;
 
     @Transactional
     public TokenInfo login(LoginRequestDto request) {
@@ -115,5 +119,22 @@ public class LoginService {
 
         refreshTokenRepository.delete(refreshTokenEntity);
         throw new GeneralException(Status.INVALID_CREDENTIALS);
+    }
+
+    @Transactional
+    public void logout(HttpServletRequest request) {
+        String token = tokenProvider.resolveToken(request);
+        if (token == null || !tokenProvider.validateToken(token) || !tokenProvider.isAccessToken(token)) {
+            return;
+        }
+
+        String userId = tokenProvider.getUserId(token);
+        if (userId != null) {
+            refreshTokenRepository.deleteById(userId);
+        }
+
+        String jti = tokenProvider.getJti(token);
+        Duration remainingExpiration = tokenProvider.getRemainingExpiration(token);
+        tokenRevocationService.revoke(jti, remainingExpiration);
     }
 }
