@@ -41,4 +41,13 @@ public class LoginController {
         TokenInfo tokenInfo = loginService.reissueToken(request);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), tokenInfo);
     }
+
+    @Operation(summary = "로그아웃", description = "Access Token 블랙리스트 등록 및 Refresh Token 삭제")
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(
+        HttpServletRequest request
+    ) {
+        loginService.logout(request);
+        return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), null);
+    }
 }

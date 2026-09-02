@@ -15,6 +15,7 @@ import com.solutio.api.domain.member.domain.Role;
 import com.solutio.api.domain.member.service.MemberService;
 import com.solutio.api.domain.recruitment.domain.Recruitment;
 import com.solutio.api.global.auth.jwt.TokenProvider;
+import com.solutio.api.global.auth.service.TokenRevocationService;
 import com.solutio.api.global.response.GeneralException;
 import com.solutio.api.global.response.Status;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -37,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,6 +65,9 @@ class LoginServiceTest {
 
     @Mock
     private ApplicantService applicantService;
+
+    @Mock
+    private TokenRevocationService tokenRevocationService;
 
     @Mock
     private HttpServletRequest httpServletRequest;
@@ -408,4 +414,67 @@ class LoginServiceTest {
             verify(refreshTokenRepository).delete(tokenEntity);
         }
     }
+
+    @Nested
+    @DisplayName("로그아웃 테스트")
+    class LogoutTests {
+
+        private static final String VALID_ACCESS_TOKEN = "valid-access-token";
+
+        @Test
+        @DisplayName("유효한 Access Token으로 로그아웃 시 RefreshToken 삭제 및 블랙리스트 등록")
+        void logout_withValidAccessToken_success() {
+            String jti = "test-jti-uuid";
+            Duration remainingTtl = Duration.ofMinutes(45);
+
+            given(tokenProvider.resolveToken(httpServletRequest)).willReturn(VALID_ACCESS_TOKEN);
+            given(tokenProvider.validateToken(VALID_ACCESS_TOKEN)).willReturn(true);
+            given(tokenProvider.isAccessToken(VALID_ACCESS_TOKEN)).willReturn(true);
+            given(tokenProvider.getUserId(VALID_ACCESS_TOKEN)).willReturn(STUDENT_ID);
+            given(tokenProvider.getJti(VALID_ACCESS_TOKEN)).willReturn(jti);
+            given(tokenProvider.getRemainingExpiration(VALID_ACCESS_TOKEN)).willReturn(remainingTtl);
+
+            loginService.logout(httpServletRequest);
+
+            verify(refreshTokenRepository).deleteById(STUDENT_ID);
+            verify(tokenRevocationService).revoke(jti, remainingTtl);
+        }
+
+        @Test
+        @DisplayName("토큰이 존재하지 않는 경우(헤더 누락) 멱등하게 정상 종료")
+        void logout_withoutToken_returnsNormally() {
+            given(tokenProvider.resolveToken(httpServletRequest)).willReturn(null);
+
+            loginService.logout(httpServletRequest);
+
+            verify(refreshTokenRepository, never()).deleteById(any());
+            verify(tokenRevocationService, never()).revoke(any(), any());
+        }
+
+        @Test
+        @DisplayName("토큰이 유효하지 않거나 만료된 경우 멱등하게 정상 종료")
+        void logout_withInvalidToken_returnsNormally() {
+            given(tokenProvider.resolveToken(httpServletRequest)).willReturn("invalid-token");
+            given(tokenProvider.validateToken("invalid-token")).willReturn(false);
+
+            loginService.logout(httpServletRequest);
+
+            verify(refreshTokenRepository, never()).deleteById(any());
+            verify(tokenRevocationService, never()).revoke(any(), any());
+        }
+
+        @Test
+        @DisplayName("Refresh Token으로 로그아웃 시도 시 멱등하게 정상 종료 (Access Token만 블랙리스트 대상)")
+        void logout_withRefreshToken_returnsNormally() {
+            given(tokenProvider.resolveToken(httpServletRequest)).willReturn("refresh-token");
+            given(tokenProvider.validateToken("refresh-token")).willReturn(true);
+            given(tokenProvider.isAccessToken("refresh-token")).willReturn(false);
+
+            loginService.logout(httpServletRequest);
+
+            verify(refreshTokenRepository, never()).deleteById(any());
+            verify(tokenRevocationService, never()).revoke(any(), any());
+        }
+    }
 }
+

@@ -6,6 +6,7 @@ import com.solutio.api.domain.member.domain.Role;
 import com.solutio.api.domain.member.dto.response.MemberMyInfoResponseDto;
 import com.solutio.api.domain.member.service.MemberService;
 import com.solutio.api.global.auth.jwt.TokenProvider;
+import com.solutio.api.global.auth.service.TokenRevocationService;
 import com.solutio.api.global.config.SecurityConfig;
 import org.springframework.context.annotation.Import;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +37,9 @@ class MemberControllerTest {
 
     @MockitoBean
     TokenProvider tokenProvider;
+
+    @MockitoBean
+    TokenRevocationService tokenRevocationService;
 
     private MemberMyInfoResponseDto memberInfo() {
         return new MemberMyInfoResponseDto(
