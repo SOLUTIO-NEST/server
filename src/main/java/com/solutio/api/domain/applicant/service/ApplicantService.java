@@ -2,7 +2,7 @@ package com.solutio.api.domain.applicant.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
 import com.solutio.api.domain.applicant.domain.PassStatus;
-import com.solutio.api.domain.applicant.dto.request.ApplicantCreateUpdateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.dto.request.ApplicantUpdateClassLevelRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
@@ -41,7 +41,7 @@ public class ApplicantService {
     private String groupAccountLink;
 
     @Transactional
-    public String applyMember(ApplicantCreateUpdateRequestDto requestDto) {
+    public String applyMember(ApplicantCreateRequestDto requestDto) {
 
         recruitmentService.validateRecruitmentForApplication(requestDto.getRecruitmentId());
 

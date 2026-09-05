@@ -2,7 +2,7 @@ package com.solutio.api.domain.applicant.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
 import com.solutio.api.domain.applicant.domain.PassStatus;
-import com.solutio.api.domain.applicant.dto.request.ApplicantCreateUpdateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantDetailResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
 import com.solutio.api.domain.applicant.repository.ApplicantRepository;
@@ -78,7 +78,7 @@ class ApplicantServiceTest {
     void applyMember_createsApplicantWithPendingAndUnassigned() {
         Recruitment recruitment = createRecruitment();
 
-        ApplicantCreateUpdateRequestDto requestDto = new ApplicantCreateUpdateRequestDto();
+        ApplicantCreateRequestDto requestDto = new ApplicantCreateRequestDto();
         ReflectionTestUtils.setField(requestDto, "studentId", "202600001");
         ReflectionTestUtils.setField(requestDto, "recruitmentId", recruitment.getId());
         ReflectionTestUtils.setField(requestDto, "email", "test@kyonggi.ac.kr");
