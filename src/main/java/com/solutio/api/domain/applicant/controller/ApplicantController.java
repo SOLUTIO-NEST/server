@@ -1,6 +1,6 @@
 package com.solutio.api.domain.applicant.controller;
 
-import com.solutio.api.domain.applicant.dto.request.ApplicantCreateUpdateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.dto.request.ApplicantUpdateClassLevelRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantPassResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantDetailResponseDto;
@@ -40,7 +40,7 @@ public class ApplicantController {
     @Operation(summary = "[Anonymous] 동아리 지원", description = "ROLE_ANONYMOUS 이상의 권한이 필요함")
     @PostMapping("")
     public ApiResponse<String> applyForClub(
-            @Valid @RequestBody ApplicantCreateUpdateRequestDto requestDto) {
+            @Valid @RequestBody ApplicantCreateRequestDto requestDto) {
         String id = applicantService.applyMember(requestDto);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), id);
     }
