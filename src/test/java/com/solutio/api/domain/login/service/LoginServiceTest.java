@@ -70,11 +70,15 @@ class LoginServiceTest {
     private TokenRevocationService tokenRevocationService;
 
     @Mock
+    private LoginRateLimitService loginRateLimitService;
+
+    @Mock
     private HttpServletRequest httpServletRequest;
 
     private static final String STUDENT_ID = "202612345";
     private static final String RAW_PASSWORD = "password123!";
     private static final String ENCODED_PASSWORD = "$2a$10$realEncodedPasswordHash...";
+    private static final String CLIENT_IP = "198.51.100.10";
 
     private Member createMember() {
         return Member.createFromApplicant(
@@ -125,7 +129,7 @@ class LoginServiceTest {
             given(tokenProvider.generateAccessToken(STUDENT_ID, Role.USER.name())).willReturn("access-token");
             given(tokenProvider.generateRefreshToken(STUDENT_ID, Role.USER.name())).willReturn("refresh-token");
 
-            TokenInfo tokenInfo = loginService.login(request);
+            TokenInfo tokenInfo = loginService.login(request, CLIENT_IP);
 
             assertThat(tokenInfo).isNotNull();
             assertThat(tokenInfo.getAccessToken()).isEqualTo("access-token");
@@ -143,7 +147,7 @@ class LoginServiceTest {
             given(memberService.getUserById(STUDENT_ID)).willReturn(member);
             given(passwordEncoder.matches("wrong_pw", ENCODED_PASSWORD)).willReturn(false);
 
-            assertThatThrownBy(() -> loginService.login(request))
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
                     .isInstanceOf(GeneralException.class)
                     .extracting(e -> ((GeneralException) e).getStatus())
                     .isEqualTo(Status.INVALID_CREDENTIALS);
@@ -168,7 +172,7 @@ class LoginServiceTest {
             given(tokenProvider.generateAccessToken(STUDENT_ID, Role.GUEST.name())).willReturn("guest-access-token");
             given(tokenProvider.generateRefreshToken(STUDENT_ID, Role.GUEST.name())).willReturn("guest-refresh-token");
 
-            TokenInfo tokenInfo = loginService.login(request);
+            TokenInfo tokenInfo = loginService.login(request, CLIENT_IP);
 
             assertThat(tokenInfo).isNotNull();
             assertThat(tokenInfo.getAccessToken()).isEqualTo("guest-access-token");
@@ -192,7 +196,7 @@ class LoginServiceTest {
             given(applicantService.getApplicantById(STUDENT_ID)).willReturn(applicant);
             given(passwordEncoder.matches("wrong_pw", ENCODED_PASSWORD)).willReturn(false);
 
-            assertThatThrownBy(() -> loginService.login(request))
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
                     .isInstanceOf(GeneralException.class)
                     .extracting(e -> ((GeneralException) e).getStatus())
                     .isEqualTo(Status.INVALID_CREDENTIALS);
@@ -213,7 +217,7 @@ class LoginServiceTest {
             given(memberService.getUserById(STUDENT_ID)).willReturn(null);
             given(applicantService.getApplicantById(STUDENT_ID)).willReturn(applicant);
 
-            assertThatThrownBy(() -> loginService.login(request))
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
                     .isInstanceOf(GeneralException.class)
                     .extracting(e -> ((GeneralException) e).getStatus())
                     .isEqualTo(Status.INVALID_CREDENTIALS);
@@ -228,7 +232,7 @@ class LoginServiceTest {
 
             given(blacklistRepository.existsByStudentId(STUDENT_ID)).willReturn(true);
 
-            assertThatThrownBy(() -> loginService.login(request))
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
                     .isInstanceOf(GeneralException.class)
                     .extracting(e -> ((GeneralException) e).getStatus())
                     .isEqualTo(Status.INVALID_CREDENTIALS);
@@ -245,7 +249,7 @@ class LoginServiceTest {
             given(memberService.getUserById(STUDENT_ID)).willReturn(null);
             given(applicantService.getApplicantById(STUDENT_ID)).willReturn(null);
 
-            assertThatThrownBy(() -> loginService.login(request))
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
                     .isInstanceOf(GeneralException.class)
                     .extracting(e -> ((GeneralException) e).getStatus())
                     .isEqualTo(Status.INVALID_CREDENTIALS);
@@ -271,7 +275,7 @@ class LoginServiceTest {
             given(tokenProvider.generateAccessToken(STUDENT_ID, Role.GUEST.name())).willReturn("guest-access-token");
             given(tokenProvider.generateRefreshToken(STUDENT_ID, Role.GUEST.name())).willReturn("guest-refresh-token");
 
-            TokenInfo tokenInfo = loginService.login(request);
+            TokenInfo tokenInfo = loginService.login(request, CLIENT_IP);
 
             assertThat(tokenInfo).isNotNull();
             assertThat(tokenInfo.getAccessToken()).isEqualTo("guest-access-token");
@@ -288,7 +292,7 @@ class LoginServiceTest {
             given(memberService.getUserById("unknown999")).willReturn(null);
             given(applicantService.getApplicantById("unknown999")).willReturn(null);
 
-            assertThatThrownBy(() -> loginService.login(request))
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
                     .isInstanceOf(GeneralException.class)
                     .extracting(e -> ((GeneralException) e).getStatus())
                     .isEqualTo(Status.INVALID_CREDENTIALS);
@@ -474,6 +478,96 @@ class LoginServiceTest {
 
             verify(refreshTokenRepository, never()).deleteById(any());
             verify(tokenRevocationService, never()).revoke(any(), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("로그인 Rate Limit 테스트")
+    class RateLimitTests {
+
+        @Test
+        @DisplayName("차단 상태인 경우 자격 증명 확인 전에 TOO_MANY_REQUESTS(429) 예외 발생")
+        void login_whenBlocked_throws429_beforeCredentialCheck() {
+            LoginRequestDto request = new LoginRequestDto(STUDENT_ID, RAW_PASSWORD);
+            given(loginRateLimitService.isBlocked(STUDENT_ID, CLIENT_IP)).willReturn(true);
+
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
+                    .isInstanceOf(GeneralException.class)
+                    .extracting(e -> ((GeneralException) e).getStatus())
+                    .isEqualTo(Status.TOO_MANY_REQUESTS);
+
+            verify(memberService, never()).getUserById(any());
+            verify(passwordEncoder, never()).matches(any(), any());
+        }
+
+        @Test
+        @DisplayName("일반 회원 비밀번호 불일치 시 실패 카운터 기록(recordFailure) 호출")
+        void login_wrongPassword_recordsFailure() {
+            LoginRequestDto request = new LoginRequestDto(STUDENT_ID, "wrong_pw");
+            Member member = createMember();
+
+            given(blacklistRepository.existsByStudentId(STUDENT_ID)).willReturn(false);
+            given(memberService.getUserById(STUDENT_ID)).willReturn(member);
+            given(passwordEncoder.matches("wrong_pw", ENCODED_PASSWORD)).willReturn(false);
+
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
+                    .isInstanceOf(GeneralException.class)
+                    .extracting(e -> ((GeneralException) e).getStatus())
+                    .isEqualTo(Status.INVALID_CREDENTIALS);
+
+            verify(loginRateLimitService).recordFailure(STUDENT_ID, CLIENT_IP);
+            verify(loginRateLimitService, never()).resetFailures(any(), any());
+        }
+
+        @Test
+        @DisplayName("일반 회원 로그인 성공 시 실패 카운터 초기화(resetFailures) 호출")
+        void login_success_resetsFailures() {
+            LoginRequestDto request = new LoginRequestDto(STUDENT_ID, RAW_PASSWORD);
+            Member member = createMember();
+
+            given(blacklistRepository.existsByStudentId(STUDENT_ID)).willReturn(false);
+            given(memberService.getUserById(STUDENT_ID)).willReturn(member);
+            given(passwordEncoder.matches(RAW_PASSWORD, ENCODED_PASSWORD)).willReturn(true);
+            given(tokenProvider.generateAccessToken(STUDENT_ID, Role.USER.name())).willReturn("access-token");
+            given(tokenProvider.generateRefreshToken(STUDENT_ID, Role.USER.name())).willReturn("refresh-token");
+
+            loginService.login(request, CLIENT_IP);
+
+            verify(loginRateLimitService).resetFailures(STUDENT_ID, CLIENT_IP);
+            verify(loginRateLimitService, never()).recordFailure(any(), any());
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 계정 실패 시 더미 해시 연산 후 recordFailure 호출")
+        void login_unknownAccount_recordsFailure_andKeepsDummyHash() {
+            LoginRequestDto request = new LoginRequestDto(STUDENT_ID, RAW_PASSWORD);
+
+            given(blacklistRepository.existsByStudentId(STUDENT_ID)).willReturn(false);
+            given(memberService.getUserById(STUDENT_ID)).willReturn(null);
+            given(applicantService.getApplicantById(STUDENT_ID)).willReturn(null);
+
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
+                    .isInstanceOf(GeneralException.class)
+                    .extracting(e -> ((GeneralException) e).getStatus())
+                    .isEqualTo(Status.INVALID_CREDENTIALS);
+
+            verify(passwordEncoder).matches(RAW_PASSWORD, LoginService.DUMMY_PASSWORD_HASH);
+            verify(loginRateLimitService).recordFailure(STUDENT_ID, CLIENT_IP);
+        }
+
+        @Test
+        @DisplayName("블랙리스트 사용자 로그인 실패 시에도 recordFailure 호출")
+        void login_blacklistedUser_recordsFailure() {
+            LoginRequestDto request = new LoginRequestDto(STUDENT_ID, RAW_PASSWORD);
+
+            given(blacklistRepository.existsByStudentId(STUDENT_ID)).willReturn(true);
+
+            assertThatThrownBy(() -> loginService.login(request, CLIENT_IP))
+                    .isInstanceOf(GeneralException.class)
+                    .extracting(e -> ((GeneralException) e).getStatus())
+                    .isEqualTo(Status.INVALID_CREDENTIALS);
+
+            verify(loginRateLimitService).recordFailure(STUDENT_ID, CLIENT_IP);
         }
     }
 }

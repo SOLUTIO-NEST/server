@@ -62,4 +62,17 @@ security:
     number: ${GROUP_ACCOUNT_NUMBER}
     fee: ${GROUP_ACCOUNT_FEE}
 
+login:
+  rate-limit:
+    pair:
+      max-failures: ${LOGIN_RATE_LIMIT_PAIR_MAX_FAILURES:5}
+      block-duration: ${LOGIN_RATE_LIMIT_PAIR_BLOCK_DURATION:5m}
+    id:
+      max-failures: ${LOGIN_RATE_LIMIT_ID_MAX_FAILURES:30}
+      block-duration: ${LOGIN_RATE_LIMIT_ID_BLOCK_DURATION:15m}
+    ip:
+      max-failures: ${LOGIN_RATE_LIMIT_IP_MAX_FAILURES:30}
+      block-duration: ${LOGIN_RATE_LIMIT_IP_BLOCK_DURATION:15m}
+    client-ip-header: ${CLIENT_IP_HEADER:CF-Connecting-IP}
+
 
