@@ -26,9 +26,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +44,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -47,6 +54,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willAnswer;
@@ -81,6 +90,12 @@ class LoginControllerIntegrationTest {
     @MockitoBean
     private TokenRevocationService tokenRevocationService;
 
+    @MockitoBean
+    private StringRedisTemplate redisTemplate;
+
+    @MockitoBean
+    private ValueOperations<String, String> valueOperations;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -99,11 +114,44 @@ class LoginControllerIntegrationTest {
 
     private final Map<String, RefreshToken> tokenStore = new ConcurrentHashMap<>();
     private final Set<String> revokedJtis = ConcurrentHashMap.newKeySet();
+    private final Map<String, Long> failCounters = new ConcurrentHashMap<>();
 
     @BeforeEach
     void setUp() {
         tokenStore.clear();
         revokedJtis.clear();
+        failCounters.clear();
+
+        // 로그인 Rate Limit 카운터를 인메모리로 대체 (Lua INCR+EXPIRE / GET / DELETE 에뮬레이션)
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
+        given(valueOperations.multiGet(anyCollection())).willAnswer(invocation -> {
+            Collection<String> keys = invocation.getArgument(0);
+            return keys.stream()
+                    .map(key -> {
+                        Long count = failCounters.get(key);
+                        return count == null ? null : String.valueOf(count);
+                    })
+                    .toList();
+        });
+        given(redisTemplate.execute(ArgumentMatchers.<RedisScript<List<Long>>>any(), anyList(), any(), any(), any()))
+                .willAnswer(invocation -> {
+                    List<String> keys = invocation.getArgument(1);
+                    List<Long> counts = new ArrayList<>();
+                    for (String key : keys) {
+                        counts.add(failCounters.merge(key, 1L, Long::sum));
+                    }
+                    return counts;
+                });
+        given(redisTemplate.delete(anyCollection())).willAnswer(invocation -> {
+            Collection<String> keys = invocation.getArgument(0);
+            long removed = 0;
+            for (String key : keys) {
+                if (failCounters.remove(key) != null) {
+                    removed++;
+                }
+            }
+            return removed;
+        });
 
         willAnswer(invocation -> {
             String jti = invocation.getArgument(0);
@@ -374,6 +422,92 @@ class LoginControllerIntegrationTest {
         result.hasStatus(HttpStatus.UNAUTHORIZED)
                 .bodyJson().extractingPath("$.status").isEqualTo("AUTH401");
         result.bodyJson().extractingPath("$.message").isEqualTo("아이디 또는 비밀번호가 일치하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("pair 임계치(5회) 초과 실패 후에는 올바른 비밀번호로도 429 TOO_MANY_REQUESTS(AUTH429) 차단")
+    void login_pairThresholdExceeded_returns429() throws Exception {
+        createMember(MEMBER_STUDENT_ID, RAW_PASSWORD);
+
+        // 5회 연속 실패 -> pair 카운터가 임계치 5에 도달
+        for (int i = 0; i < 5; i++) {
+            assertThat(mvcTester.post().uri("/api/v1/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, "WrongPassword!"))))
+                    .hasStatus(HttpStatus.UNAUTHORIZED);
+        }
+
+        // 임계치 도달 후에는 자격 증명 확인 전에 고정 메시지로 429 응답 (잔여 시간 미노출)
+        var result = assertThat(mvcTester.post().uri("/api/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, RAW_PASSWORD))));
+
+        result.hasStatus(HttpStatus.TOO_MANY_REQUESTS)
+                .bodyJson().extractingPath("$.status").isEqualTo("AUTH429");
+        result.bodyJson().extractingPath("$.message")
+                .isEqualTo("너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해 주세요.");
+    }
+
+    @Test
+    @DisplayName("차단 중이라도 다른 IP에서의 시도는 pair/id 임계치 미달 시 정상 로그인 성공")
+    void login_blockedPair_differentIp_success() throws Exception {
+        createMember(MEMBER_STUDENT_ID, RAW_PASSWORD);
+
+        for (int i = 0; i < 5; i++) {
+            assertThat(mvcTester.post().uri("/api/v1/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, "WrongPassword!"))))
+                    .hasStatus(HttpStatus.UNAUTHORIZED);
+        }
+
+        // CF-Connecting-IP 헤더로 다른 클라이언트 IP에서 접속하면 pair 카운터가 분리되어 로그인 성공
+        var result = assertThat(mvcTester.post().uri("/api/v1/login")
+                .header("CF-Connecting-IP", "203.0.113.10")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, RAW_PASSWORD))));
+
+        result.hasStatusOk()
+                .bodyJson().extractingPath("$.data.accessToken").isNotNull();
+    }
+
+    @Test
+    @DisplayName("로그인 성공 시 3계층 실패 카운터가 모두 초기화되어 임계치 카운트가 재시작된다")
+    void login_success_resetsFailCounters() throws Exception {
+        createMember(MEMBER_STUDENT_ID, RAW_PASSWORD);
+
+        // 4회 실패
+        for (int i = 0; i < 4; i++) {
+            assertThat(mvcTester.post().uri("/api/v1/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, "WrongPassword!"))))
+                    .hasStatus(HttpStatus.UNAUTHORIZED);
+        }
+        assertThat(failCounters).isNotEmpty();
+
+        // 로그인 성공 -> pair/id/ip 3계층 카운터 전부 리셋
+        assertThat(mvcTester.post().uri("/api/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, RAW_PASSWORD))))
+                .hasStatusOk();
+        assertThat(failCounters).isEmpty();
+
+        // 리셋 확인: 다시 4회 실패해도 429가 아닌 401 (카운트 재시작)
+        for (int i = 0; i < 4; i++) {
+            assertThat(mvcTester.post().uri("/api/v1/login")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, "WrongPassword!"))))
+                    .hasStatus(HttpStatus.UNAUTHORIZED);
+        }
+
+        // 5번째 실패로 임계치 도달 후 6번째 시도부터는 다시 429 차단
+        assertThat(mvcTester.post().uri("/api/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, "WrongPassword!"))))
+                .hasStatus(HttpStatus.UNAUTHORIZED);
+        assertThat(mvcTester.post().uri("/api/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new LoginRequestDto(MEMBER_STUDENT_ID, RAW_PASSWORD))))
+                .hasStatus(HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @Test

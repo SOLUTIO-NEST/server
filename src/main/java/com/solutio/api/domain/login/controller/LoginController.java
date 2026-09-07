@@ -2,6 +2,7 @@ package com.solutio.api.domain.login.controller;
 
 import com.solutio.api.domain.login.dto.request.LoginRequestDto;
 import com.solutio.api.domain.login.dto.response.TokenInfo;
+import com.solutio.api.domain.login.service.LoginRateLimitService;
 import com.solutio.api.domain.login.service.LoginService;
 import com.solutio.api.global.response.ApiResponse;
 import com.solutio.api.global.response.Status;
@@ -23,13 +24,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class LoginController {
 
     private final LoginService loginService;
+    private final LoginRateLimitService loginRateLimitService;
 
     @Operation(summary = "로그인", description = "ROLE_ANONYMOUS 권한이 필요함")
     @PostMapping("")
     public ApiResponse<TokenInfo> login(
-        @Valid @RequestBody LoginRequestDto requestDto
+        @Valid @RequestBody LoginRequestDto requestDto,
+        HttpServletRequest request
     ) {
-        TokenInfo tokenInfo = loginService.login(requestDto);
+        String clientIp = loginRateLimitService.resolveClientIp(request);
+        TokenInfo tokenInfo = loginService.login(requestDto, clientIp);
         return ApiResponse.success(Status.OK.getCode(), Status.OK.getMessage(), tokenInfo);
     }
 
