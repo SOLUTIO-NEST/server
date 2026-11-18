@@ -2,6 +2,7 @@ package com.solutio.api.global.config;
 
 import com.solutio.api.global.auth.filter.TokenAuthenticationFilter;
 import com.solutio.api.global.auth.jwt.TokenProvider;
+import com.solutio.api.global.auth.service.TokenRevocationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
     private final TokenProvider tokenProvider;
+    private final TokenRevocationService tokenRevocationService;
 
     private static final String[] ALLOWED_ALL = {
             "/",
@@ -36,6 +38,7 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/api/v1/login",
+            "/api/v1/login/**",
             "/actuator/health"
     };
 
@@ -65,7 +68,7 @@ public class SecurityConfig {
     }
 
     public TokenAuthenticationFilter tokenAuthenticationFilter() {
-        return new TokenAuthenticationFilter(tokenProvider);
+        return new TokenAuthenticationFilter(tokenProvider, tokenRevocationService);
     }
 
     @Bean

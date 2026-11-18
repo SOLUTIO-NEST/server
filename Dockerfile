@@ -9,4 +9,5 @@ USER appuser
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# -XX:-UseBASE64Intrinsics mitigates CVE-2026-114938 (Java4Shell, AVX-512 Base64 RCE) until the JDK is upgraded to a patched build
+ENTRYPOINT ["java", "-XX:-UseBASE64Intrinsics", "-jar", "app.jar"]

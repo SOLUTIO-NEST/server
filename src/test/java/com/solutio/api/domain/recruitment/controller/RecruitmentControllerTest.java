@@ -8,6 +8,7 @@ import com.solutio.api.domain.recruitment.dto.request.RecruitmentUpdateRequestDt
 import com.solutio.api.domain.recruitment.dto.response.RecruitmentResponseDto;
 import com.solutio.api.domain.recruitment.service.RecruitmentService;
 import com.solutio.api.global.auth.jwt.TokenProvider;
+import com.solutio.api.global.auth.service.TokenRevocationService;
 import com.solutio.api.global.config.SecurityConfig;
 import com.solutio.api.global.response.PageResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +50,9 @@ class RecruitmentControllerTest {
 
     @MockitoBean
     TokenProvider tokenProvider;
+
+    @MockitoBean
+    TokenRevocationService tokenRevocationService;
 
     @Test
     @DisplayName("비로그인 사용자도 전체 모집 공고 목록을 조회할 수 있다")

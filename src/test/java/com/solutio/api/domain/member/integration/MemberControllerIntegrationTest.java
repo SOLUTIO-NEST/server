@@ -43,7 +43,11 @@ class MemberControllerIntegrationTest {
     static final String STUDENT_ID = "202312345";
 
     private String generateToken(String studentId, String role) {
-        return tokenProvider.generateToken(studentId, Duration.ofHours(1), role);
+        return tokenProvider.generateAccessToken(studentId, Duration.ofHours(1), role);
+    }
+
+    private String generateRefreshToken(String studentId, String role) {
+        return tokenProvider.generateRefreshToken(studentId, Duration.ofDays(1), role);
     }
 
     private MvcTestResultAssert request(String token) {
@@ -96,6 +100,15 @@ class MemberControllerIntegrationTest {
         String token = generateToken(STUDENT_ID, "GUEST");
 
         request(token).hasStatus(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    @DisplayName("Refresh Token을 Authorization 헤더에 담아 요청하면 인증이 거부된다 (Token Type Confusion 방어)")
+    void getMyInfo_withRefreshToken_returnsForbidden() {
+        createMember();
+        String refreshToken = generateRefreshToken(STUDENT_ID, "USER");
+
+        request(refreshToken).hasStatus(HttpStatus.FORBIDDEN);
     }
 
     @Test

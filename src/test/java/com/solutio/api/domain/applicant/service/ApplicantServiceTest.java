@@ -2,7 +2,7 @@ package com.solutio.api.domain.applicant.service;
 
 import com.solutio.api.domain.applicant.domain.Applicant;
 import com.solutio.api.domain.applicant.domain.PassStatus;
-import com.solutio.api.domain.applicant.dto.request.ApplicantCreateUpdateRequestDto;
+import com.solutio.api.domain.applicant.dto.request.ApplicantCreateRequestDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantDetailResponseDto;
 import com.solutio.api.domain.applicant.dto.response.ApplicantResponseDto;
 import com.solutio.api.domain.applicant.repository.ApplicantRepository;
@@ -36,11 +36,17 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.solutio.api.domain.login.repository.RefreshTokenRepository;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
 @ActiveProfiles("test")
 @DataJpaTest
 @Import({ApplicantService.class, MemberService.class, RecruitmentService.class, BCryptPasswordEncoder.class})
 @Transactional
 class ApplicantServiceTest {
+
+    @MockitoBean
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     private ApplicantService applicantService;
@@ -72,7 +78,7 @@ class ApplicantServiceTest {
     void applyMember_createsApplicantWithPendingAndUnassigned() {
         Recruitment recruitment = createRecruitment();
 
-        ApplicantCreateUpdateRequestDto requestDto = new ApplicantCreateUpdateRequestDto();
+        ApplicantCreateRequestDto requestDto = new ApplicantCreateRequestDto();
         ReflectionTestUtils.setField(requestDto, "studentId", "202600001");
         ReflectionTestUtils.setField(requestDto, "recruitmentId", recruitment.getId());
         ReflectionTestUtils.setField(requestDto, "email", "test@kyonggi.ac.kr");
